@@ -24,6 +24,7 @@ import Time from "~/components/Time";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
+import useSettingsPath from "~/hooks/useSettingsPath";
 import useStores from "~/hooks/useStores";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import { GroupPermission } from "@shared/types";
@@ -33,7 +34,6 @@ import { EmptySelectValue } from "~/types";
 import type GroupUser from "~/models/GroupUser";
 import Switch from "~/components/Switch";
 import history from "~/utils/history";
-import { settingsPath } from "~/utils/routeHelpers";
 
 type Props = {
   group: Group;
@@ -43,6 +43,7 @@ type Props = {
 export function CreateGroupDialog() {
   const { dialogs, groups } = useStores();
   const { t } = useTranslation();
+  const settingsPath = useSettingsPath();
   const [name, setName] = React.useState<string | undefined>();
   const [description, setDescription] = React.useState<string | undefined>();
   const [isSaving, setIsSaving] = React.useState(false);
@@ -70,7 +71,7 @@ export function CreateGroupDialog() {
         setIsSaving(false);
       }
     },
-    [dialogs, groups, name, description]
+    [dialogs, groups, name, description, settingsPath]
   );
 
   return (

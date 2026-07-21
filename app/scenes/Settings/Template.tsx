@@ -17,9 +17,10 @@ import { TemplateForm } from "~/components/Template/TemplateForm";
 import { createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 import useRequest from "~/hooks/useRequest";
+import useSettingsPath from "~/hooks/useSettingsPath";
 import useStores from "~/hooks/useStores";
 import TemplateMenu from "~/menus/TemplateMenu";
-import { collectionPath, settingsPath } from "~/utils/routeHelpers";
+import { collectionPath } from "~/utils/routeHelpers";
 import type Template from "~/models/Template";
 import history from "~/utils/history";
 
@@ -64,6 +65,7 @@ const LoadingState = observer(function LoadingState() {
 const TemplateSetting = observer(function Template_({ template }: Props) {
   const { t } = useTranslation();
   const { collections } = useStores();
+  const settingsPath = useSettingsPath();
   const [saving, setSaving] = useState(false);
   const collection = template.collectionId
     ? collections.get(template.collectionId)
@@ -88,7 +90,7 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
           ]
         : []),
     ],
-    [t, collection]
+    [t, collection, settingsPath]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -106,7 +108,7 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [template, t]);
+  }, [template, t, settingsPath]);
 
   return (
     <Scene

@@ -23,9 +23,9 @@ import Switch from "~/components/Switch";
 import Tooltip from "~/components/Tooltip";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import useSettingsPath from "~/hooks/useSettingsPath";
 import OAuthClientMenu from "~/menus/OAuthClientMenu";
 import isCloudHosted from "~/utils/isCloudHosted";
-import { settingsPath } from "~/utils/routeHelpers";
 import { ActionRow } from "./components/ActionRow";
 import { CopyButton } from "./components/CopyButton";
 import ImageInput from "./components/ImageInput";
@@ -48,7 +48,7 @@ const LoadingState = observer(function LoadingState() {
     if (!oauthClient) {
       void request();
     }
-  }, [oauthClient]);
+  }, [oauthClient, request]);
 
   if (!oauthClient) {
     return <LoadingIndicator />;
@@ -59,6 +59,7 @@ const LoadingState = observer(function LoadingState() {
 
 const Application = observer(function Application({ oauthClient }: Props) {
   const { t } = useTranslation();
+  const settingsPath = useSettingsPath();
   const { dialogs } = useStores();
 
   const {
@@ -91,7 +92,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
         to: settingsPath("applications"),
       }),
     ],
-    [t]
+    [t, settingsPath]
   );
 
   const handleSubmit = useCallback(

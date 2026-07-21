@@ -108,7 +108,7 @@ export const navigateToWorkspaceSettings = createInternalLinkAction({
   section: NavigationSection,
   icon: <SettingsIcon />,
   visible: () => stores.policies.abilities(stores.auth.team?.id || "").update,
-  to: settingsPath("details"),
+  to: settingsPath(),
 });
 
 export const navigateToProfileSettings = createInternalLinkAction({

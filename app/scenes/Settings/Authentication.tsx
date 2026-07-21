@@ -17,11 +17,11 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useRequest from "~/hooks/useRequest";
+import useSettingsPath from "~/hooks/useSettingsPath";
 import useStores from "~/hooks/useStores";
 import SettingRow from "./components/SettingRow";
 import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
 import { getRedirectUrl, toRelative } from "~/utils/urls";
-import { settingsPath } from "~/utils/routeHelpers";
 import DomainManagement from "./components/DomainManagement";
 import Button from "~/components/Button";
 import { ConnectedIcon } from "~/components/Icons/ConnectedIcon";
@@ -34,6 +34,7 @@ function Authentication() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const theme = useTheme();
+  const settingsPath = useSettingsPath();
 
   const {
     data: providers,
@@ -97,12 +98,15 @@ function Authentication() {
     [dialogs, t]
   );
 
-  const handleConnectProvider = React.useCallback((name: string) => {
-    setPostLoginPath(settingsPath("authentication"));
-    // Start the flow on the current workspace origin so the signed-in actor is
-    // captured from the host-scoped session before bouncing to the apex.
-    window.location.href = toRelative(getRedirectUrl(`/auth/${name}`));
-  }, []);
+  const handleConnectProvider = React.useCallback(
+    (name: string) => {
+      setPostLoginPath(settingsPath("authentication"));
+      // Start the flow on the current workspace origin so the signed-in actor is
+      // captured from the host-scoped session before bouncing to the apex.
+      window.location.href = toRelative(getRedirectUrl(`/auth/${name}`));
+    },
+    [settingsPath]
+  );
 
   const handleToggleGroupSync = React.useCallback(
     (provider: AuthenticationProvider, checked: boolean) => {

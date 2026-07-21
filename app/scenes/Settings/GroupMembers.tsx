@@ -24,6 +24,7 @@ import { NavigationSection } from "~/actions/sections";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
+import useSettingsPath from "~/hooks/useSettingsPath";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import type { FetchPageParams, PaginatedResponse } from "~/stores/base/Store";
@@ -33,7 +34,6 @@ import { AddPeopleToGroupDialog } from "./components/GroupDialogs";
 import GroupPermissionFilter from "./components/GroupPermissionFilter";
 import { GroupMembersTable } from "./components/GroupMembersTable";
 import { StickyFilters } from "./components/StickyFilters";
-import { settingsPath } from "~/utils/routeHelpers";
 
 /**
  * Settings page that lists members of a specific group.
@@ -67,6 +67,7 @@ const GroupMembersPage = observer(function GroupMembersPage({
   groupId: string;
 }) {
   const { t } = useTranslation();
+  const settingsPath = useSettingsPath();
   const theme = useTheme();
   const { dialogs, groups, users, groupUsers } = useStores();
   const group = groups.get(groupId)!;
@@ -200,7 +201,7 @@ const GroupMembersPage = observer(function GroupMembersPage({
         to: settingsPath("groups"),
       }),
     ],
-    [t]
+    [t, settingsPath]
   );
 
   return (

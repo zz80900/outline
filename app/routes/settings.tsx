@@ -1,10 +1,11 @@
-import { Switch } from "react-router-dom";
+import { Switch, useLocation } from "react-router-dom";
+import { observer } from "mobx-react";
 import Error404 from "~/scenes/Errors/Error404";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";
 import Route from "~/components/ProfiledRoute";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
-import { settingsPath } from "~/utils/routeHelpers";
-import { observer } from "mobx-react";
+import { getSettingsMode, settingsPathForMode } from "~/utils/routeHelpers";
+import { SettingsConfigScope } from "~/utils/settings";
 
 const Application = lazy(() => import("~/scenes/Settings/Application"));
 const GroupMembers = lazy(() => import("~/scenes/Settings/GroupMembers"), {
@@ -14,7 +15,16 @@ const Template = lazy(() => import("~/scenes/Settings/Template"));
 const TemplateNew = lazy(() => import("~/scenes/Settings/TemplateNew"));
 
 function SettingsRoutes() {
-  const configs = useSettingsConfig();
+  const location = useLocation();
+  const mode = getSettingsMode(location.pathname);
+  const configs = useSettingsConfig({
+    mode,
+    scope: SettingsConfigScope.Routes,
+  });
+
+  if (!mode) {
+    return <Route component={Error404} />;
+  }
 
   return (
     <Switch>
@@ -29,22 +39,22 @@ function SettingsRoutes() {
       {/* TODO: Refactor these exceptions into config? */}
       <Route
         exact
-        path={settingsPath("groups", ":id", "members")}
+        path={settingsPathForMode(mode, "groups", ":id", "members")}
         component={GroupMembers.Component}
       />
       <Route
         exact
-        path={settingsPath("applications", ":id")}
+        path={settingsPathForMode(mode, "applications", ":id")}
         component={Application.Component}
       />
       <Route
         exact
-        path={settingsPath("templates", "new")}
+        path={settingsPathForMode(mode, "templates", "new")}
         component={TemplateNew.Component}
       />
       <Route
         exact
-        path={settingsPath("templates", ":id")}
+        path={settingsPathForMode(mode, "templates", ":id")}
         component={Template.Component}
       />
       <Route component={Error404} />

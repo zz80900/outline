@@ -15,13 +15,15 @@ import { TemplateForm } from "~/components/Template/TemplateForm";
 import { createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 import useQuery from "~/hooks/useQuery";
+import useSettingsPath from "~/hooks/useSettingsPath";
 import useStores from "~/hooks/useStores";
-import { collectionPath, settingsPath } from "~/utils/routeHelpers";
+import { collectionPath } from "~/utils/routeHelpers";
 import history from "~/utils/history";
 
 function TemplateNewScene() {
   const { t } = useTranslation();
   const { templates, collections } = useStores();
+  const settingsPath = useSettingsPath();
   const params = useQuery();
   const collectionId = params.get("collectionId") || undefined;
   const collection = collectionId ? collections.get(collectionId) : undefined;
@@ -50,7 +52,7 @@ function TemplateNewScene() {
           ]
         : []),
     ],
-    [t, collection]
+    [t, collection, settingsPath]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -68,7 +70,7 @@ function TemplateNewScene() {
     } finally {
       setSaving(false);
     }
-  }, [template, t]);
+  }, [template, t, settingsPath]);
 
   return (
     <Scene

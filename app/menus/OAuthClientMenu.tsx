@@ -5,8 +5,8 @@ import type OAuthClient from "~/models/oauth/OAuthClient";
 import OAuthClientDeleteDialog from "~/scenes/Settings/components/OAuthClientDeleteDialog";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import useSettingsPath from "~/hooks/useSettingsPath";
 import useStores from "~/hooks/useStores";
-import { settingsPath } from "~/utils/routeHelpers";
 import {
   ActionSeparator,
   createAction,
@@ -26,6 +26,7 @@ type Props = {
 function OAuthClientMenu({ oauthClient, showEdit }: Props) {
   const { dialogs } = useStores();
   const { t } = useTranslation();
+  const settingsPath = useSettingsPath();
 
   const handleDelete = useCallback(() => {
     dialogs.openModal({
@@ -55,7 +56,7 @@ function OAuthClientMenu({ oauthClient, showEdit }: Props) {
         perform: handleDelete,
       }),
     ],
-    [t, showEdit, oauthClient.id, handleDelete]
+    [t, showEdit, oauthClient.id, handleDelete, settingsPath]
   );
 
   const rootAction = useMenuAction(actions);

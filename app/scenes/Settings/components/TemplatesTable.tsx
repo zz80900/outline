@@ -21,10 +21,12 @@ import { type Column as TableColumn } from "~/components/Table";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import { ActionContextProvider } from "~/hooks/useActionContext";
+import useSettingsPath from "~/hooks/useSettingsPath";
 import { useTemplateSettingsActions } from "~/hooks/useTemplateSettingsActions";
 import TemplateMenu from "~/menus/TemplateMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import history from "~/utils/history";
+import { settingsPath as defaultSettingsPath } from "~/utils/routeHelpers";
 import usePolicy from "~/hooks/usePolicy";
 
 const ROW_HEIGHT = 50;
@@ -41,8 +43,13 @@ const TemplateRowContextMenu = observer(function TemplateRowContextMenu({
   menuLabel: string;
   children: React.ReactNode;
 }) {
+  const settingsPath = useSettingsPath();
+  const templatePath = template.path.replace(
+    defaultSettingsPath(),
+    settingsPath()
+  );
   const action = useTemplateSettingsActions(template, () =>
-    history.push(template.path)
+    history.push(templatePath)
   );
   return (
     <ActionContextProvider value={{ activeModels: [template] }}>
@@ -55,10 +62,16 @@ const TemplateRowContextMenu = observer(function TemplateRowContextMenu({
 
 export function TemplatesTable(props: Props) {
   const { t } = useTranslation();
+  const settingsPath = useSettingsPath();
 
-  const handleOpen = (template: Template) => {
-    history.push(template.path);
-  };
+  const handleOpen = useCallback(
+    (template: Template) => {
+      history.push(
+        template.path.replace(defaultSettingsPath(), settingsPath())
+      );
+    },
+    [settingsPath]
+  );
 
   const applyContextMenu = useCallback(
     (template: Template, rowElement: React.ReactNode) => (
@@ -130,7 +143,7 @@ export function TemplatesTable(props: Props) {
           width: "50px",
         },
       ]),
-    [t]
+    [t, handleOpen]
   );
 
   return (

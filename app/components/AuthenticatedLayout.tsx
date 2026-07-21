@@ -18,10 +18,10 @@ import history from "~/utils/history";
 import { isModKey } from "@shared/utils/keyboard";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import {
-  searchPath,
-  newDocumentPath,
-  settingsPath,
   homePath,
+  isSettingsPath,
+  newDocumentPath,
+  searchPath,
 } from "~/utils/routeHelpers";
 import { DocumentContextProvider } from "./DocumentContext";
 import Fade from "./Fade";
@@ -89,7 +89,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     return <ErrorSuspended />;
   }
 
-  const isSettings = location.pathname.startsWith(settingsPath());
+  const isSettings = isSettingsPath(location.pathname);
 
   const sidebar = (
     <Fade>

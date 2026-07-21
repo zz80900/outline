@@ -8,8 +8,9 @@ import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
+import useSettingsPath from "~/hooks/useSettingsPath";
 import useStores from "~/hooks/useStores";
-import { settingsPath } from "~/utils/routeHelpers";
+import { SettingsConfigScope } from "~/utils/settings";
 import IntegrationCard, { Card } from "./components/IntegrationCard";
 import { StickyFilters } from "./components/StickyFilters";
 import { observer } from "mobx-react";
@@ -17,7 +18,8 @@ import { observer } from "mobx-react";
 function Integrations() {
   const { t } = useTranslation();
   const { integrations } = useStores();
-  const items = useSettingsConfig();
+  const settingsPath = useSettingsPath();
+  const items = useSettingsConfig({ scope: SettingsConfigScope.Routes });
   const [query, setQuery] = React.useState("");
 
   const handleQuery = (event: React.ChangeEvent<HTMLInputElement>) => {

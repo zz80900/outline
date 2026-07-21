@@ -13,15 +13,17 @@ import {
 } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import { useSettingsMode } from "~/hooks/useSettingsPath";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { newTemplatePath } from "~/utils/routeHelpers";
+import { newTemplatePathForMode } from "~/utils/routeHelpers";
 import { AvatarSize } from "~/components/Avatar";
 
 function NewTemplateMenu() {
   const { t } = useTranslation();
   const team = useCurrentTeam();
+  const settingsMode = useSettingsMode();
   const { collections, policies } = useStores();
   const can = usePolicy(team);
 
@@ -34,10 +36,10 @@ function NewTemplateMenu() {
           section: DocumentSection,
           icon: <CollectionIcon collection={collection} />,
           visible: !!canCollection.createTemplate,
-          to: newTemplatePath(collection.id),
+          to: newTemplatePathForMode(settingsMode, collection.id),
         });
       }),
-    [policies, collections.orderedData]
+    [policies, collections.orderedData, settingsMode]
   );
 
   const allActions = useMemo(
@@ -47,7 +49,7 @@ function NewTemplateMenu() {
         section: DocumentSection,
         icon: <TeamLogo model={team} size={AvatarSize.Small} />,
         visible: can.createTemplate,
-        to: newTemplatePath(),
+        to: newTemplatePathForMode(settingsMode),
       }),
       ActionSeparator,
       createActionGroup({
@@ -55,7 +57,7 @@ function NewTemplateMenu() {
         actions: collectionActions,
       }),
     ],
-    [t, team, can, collectionActions]
+    [t, team, can, collectionActions, settingsMode]
   );
 
   const rootAction = useMenuAction(allActions);

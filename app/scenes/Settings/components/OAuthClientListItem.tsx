@@ -8,8 +8,8 @@ import ListItem from "~/components/List/Item";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useSettingsPath from "~/hooks/useSettingsPath";
 import OAuthClientMenu from "~/menus/OAuthClientMenu";
-import { settingsPath } from "~/utils/routeHelpers";
 
 type Props = {
   oauthClient: OAuthClient;
@@ -18,6 +18,7 @@ type Props = {
 const OAuthClientListItem = ({ oauthClient }: Props) => {
   const { t } = useTranslation();
   const user = useCurrentUser();
+  const settingsPath = useSettingsPath();
 
   const subtitle = (
     <>

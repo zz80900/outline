@@ -29,8 +29,8 @@ import {
 } from "~/utils/errors";
 import history from "~/utils/history";
 import {
+  isSettingsPath,
   matchDocumentEdit,
-  settingsPath,
   updateDocumentPath,
 } from "~/utils/routeHelpers";
 import useDocumentSidebar from "../hooks/useDocumentSidebar";
@@ -90,7 +90,7 @@ function DataLoader({ match, children }: Props) {
     : undefined;
 
   const isEditRoute =
-    match.path === matchDocumentEdit || match.path.startsWith(settingsPath());
+    match.path === matchDocumentEdit || isSettingsPath(match.path);
   const isEditing = isEditRoute || !user?.separateEditMode;
   const { isFocused: isPaneFocused } = useSplitView();
   const can = usePolicy(document);

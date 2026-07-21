@@ -3,8 +3,8 @@ import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
+import useSettingsPath from "~/hooks/useSettingsPath";
 import useStores from "~/hooks/useStores";
-import { settingsPath } from "~/utils/routeHelpers";
 import type { FormData } from "./OAuthClientForm";
 import { OAuthClientForm } from "./OAuthClientForm";
 
@@ -17,6 +17,7 @@ export const OAuthClientNew = observer(function OAuthClientNew_({
 }: Props) {
   const { oauthClients } = useStores();
   const history = useHistory();
+  const settingsPath = useSettingsPath();
 
   const handleSubmit = useCallback(
     async (data: FormData) => {
@@ -28,7 +29,7 @@ export const OAuthClientNew = observer(function OAuthClientNew_({
         toast.error(errToString(error));
       }
     },
-    [oauthClients, history, onSubmit]
+    [oauthClients, history, onSubmit, settingsPath]
   );
 
   return <OAuthClientForm handleSubmit={handleSubmit} />;

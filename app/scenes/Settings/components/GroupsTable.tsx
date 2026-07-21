@@ -19,6 +19,7 @@ import {
 import { type Column as TableColumn } from "~/components/Table";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useGroupMenuActions } from "~/hooks/useGroupMenuActions";
+import useSettingsPath from "~/hooks/useSettingsPath";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import GroupMenu from "~/menus/GroupMenu";
@@ -27,7 +28,6 @@ import NudeButton from "~/components/NudeButton";
 import { AvatarSize } from "~/components/Avatar";
 import { HStack } from "~/components/primitives/HStack";
 import Tooltip from "~/components/Tooltip";
-import { settingsPath } from "~/utils/routeHelpers";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -55,12 +55,13 @@ export function GroupsTable(props: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
   const history = useHistory();
+  const settingsPath = useSettingsPath();
 
   const handleViewMembers = useCallback(
     (group: Group) => {
       history.push(settingsPath("groups", group.id, "members"));
     },
-    [history]
+    [history, settingsPath]
   );
 
   const applyContextMenu = useCallback(

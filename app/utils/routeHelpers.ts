@@ -3,6 +3,7 @@ import type Collection from "~/models/Collection";
 import type Comment from "~/models/Comment";
 import type Document from "~/models/Document";
 import env from "~/env";
+import { SettingsMode } from "./settings";
 
 /**
  * Returns the path to the home screen.
@@ -77,7 +78,81 @@ export function debugChangesetsPath(): string {
  * @returns the settings path.
  */
 export function settingsPath(...args: string[]): string {
-  return "/settings" + (args.length > 0 ? `/${args.join("/")}` : "");
+  return settingsPathForMode(SettingsMode.Simplified, ...args);
+}
+
+/**
+ * Returns the path to a settings screen for a navigation mode.
+ *
+ * @param mode settings navigation mode.
+ * @param args optional path segments appended to the settings path.
+ * @returns the settings path for the requested mode.
+ */
+export function settingsPathForMode(
+  mode: SettingsMode,
+  ...args: string[]
+): string {
+  const root = mode === SettingsMode.Complete ? "/settings2" : "/settings";
+  return root + (args.length > 0 ? `/${args.join("/")}` : "");
+}
+
+/**
+ * Returns the integration settings path for a navigation mode.
+ *
+ * @param mode settings navigation mode.
+ * @param id integration identifier.
+ * @returns the integration settings path for the requested mode.
+ */
+export function integrationSettingsPathForMode(
+  mode: SettingsMode,
+  id: string
+): string {
+  return settingsPathForMode(mode, "integrations", id);
+}
+
+/**
+ * Returns the settings mode represented by a pathname.
+ *
+ * @param pathname pathname to inspect.
+ * @returns the matching settings mode, if the path is a settings route.
+ */
+export function getSettingsMode(pathname: string): SettingsMode | undefined {
+  if (pathname === "/settings2" || pathname.startsWith("/settings2/")) {
+    return SettingsMode.Complete;
+  }
+
+  if (pathname === "/settings" || pathname.startsWith("/settings/")) {
+    return SettingsMode.Simplified;
+  }
+
+  return undefined;
+}
+
+/**
+ * Returns whether a pathname belongs to a supported settings namespace.
+ *
+ * @param pathname pathname to inspect.
+ * @returns true when the path belongs to a settings namespace.
+ */
+export function isSettingsPath(pathname: string): boolean {
+  return getSettingsMode(pathname) !== undefined;
+}
+
+/**
+ * Returns a settings path using the namespace of another pathname.
+ *
+ * @param pathname pathname used to resolve the settings mode.
+ * @param args optional path segments appended to the settings path.
+ * @returns a settings path that preserves the complete namespace when active.
+ */
+export function settingsPathFromLocation(
+  pathname: string,
+  ...args: string[]
+): string {
+  return settingsPathForMode(
+    getSettingsMode(pathname) ?? SettingsMode.Simplified,
+    ...args
+  );
 }
 
 /**
@@ -198,9 +273,24 @@ export function updateDocumentPath(oldUrl: string, document: Document): string {
  * @returns the path to the new template screen.
  */
 export function newTemplatePath(collectionId?: string) {
+  return newTemplatePathForMode(SettingsMode.Simplified, collectionId);
+}
+
+/**
+ * Returns the path to create a new template for a settings mode.
+ *
+ * @param mode settings navigation mode.
+ * @param collectionId an optional collection to associate the template with.
+ * @returns the new template path for the requested mode.
+ */
+export function newTemplatePathForMode(
+  mode: SettingsMode,
+  collectionId?: string
+) {
+  const templatesPath = settingsPathForMode(mode, "templates");
   return collectionId
-    ? settingsPath("templates") + `/new?collectionId=${collectionId}`
-    : `${settingsPath("templates")}/new`;
+    ? `${templatesPath}/new?collectionId=${collectionId}`
+    : `${templatesPath}/new`;
 }
 
 /**

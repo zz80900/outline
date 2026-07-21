@@ -5,13 +5,14 @@ import { createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 import Breadcrumb from "~/components/Breadcrumb";
 import Scene from "~/components/Scene";
-import { settingsPath } from "~/utils/routeHelpers";
+import useSettingsPath from "~/hooks/useSettingsPath";
 
 export function IntegrationScene({
   children,
   ...rest
 }: React.ComponentProps<typeof Scene>) {
   const { t } = useTranslation();
+  const settingsPath = useSettingsPath();
 
   const breadcrumbActions = React.useMemo(
     () => [
@@ -22,7 +23,7 @@ export function IntegrationScene({
         to: settingsPath("integrations"),
       }),
     ],
-    [t]
+    [t, settingsPath]
   );
 
   return (

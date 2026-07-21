@@ -20,11 +20,13 @@ import {
 } from "~/actions";
 import history from "~/utils/history";
 import {
+  getSettingsMode,
   newDocumentPath,
-  newTemplatePath,
-  settingsPath,
+  newTemplatePathForMode,
+  settingsPathFromLocation,
   urlify,
 } from "~/utils/routeHelpers";
+import { SettingsMode } from "~/utils/settings";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import { ActiveTemplateSection, TemplateSection } from "../sections";
 import Template from "~/models/Template";
@@ -39,7 +41,10 @@ export const createTemplate = createInternalLinkAction({
   keywords: "new create template",
   visible: ({ currentTeamId, stores }) =>
     !!stores.policies.abilities(currentTeamId!).createTemplate,
-  to: newTemplatePath(),
+  to: ({ location }) =>
+    newTemplatePathForMode(
+      getSettingsMode(location.pathname) ?? SettingsMode.Simplified
+    ),
 });
 
 export const deleteTemplate = createAction({
@@ -50,7 +55,7 @@ export const deleteTemplate = createAction({
   dangerous: true,
   visible: ({ getActivePolicies }) =>
     getActivePolicies(Template).some((policy) => policy.abilities.delete),
-  perform: ({ getActiveModel, stores, t }) => {
+  perform: ({ getActiveModel, location, stores, t }) => {
     const template = getActiveModel(Template);
     if (!template) {
       return;
@@ -64,7 +69,9 @@ export const deleteTemplate = createAction({
         <ConfirmationDialog
           onSubmit={async () => {
             await template.delete();
-            history.push(settingsPath("templates"));
+            history.push(
+              settingsPathFromLocation(location.pathname, "templates")
+            );
             toast.success(t("Template deleted"));
           }}
           savingText={`${t("Deleting")}…`}

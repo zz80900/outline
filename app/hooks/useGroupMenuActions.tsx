@@ -16,7 +16,7 @@ import {
 } from "~/actions";
 import { GroupSection } from "~/actions/sections";
 import { useMenuAction } from "~/hooks/useMenuAction";
-import { settingsPath } from "~/utils/routeHelpers";
+import useSettingsPath from "~/hooks/useSettingsPath";
 
 interface Options {
   /** Whether to hide the "Members" navigation action. */
@@ -37,6 +37,7 @@ export function useGroupMenuActions(
   const { t } = useTranslation();
   const { dialogs } = useStores();
   const history = useHistory();
+  const settingsPath = useSettingsPath();
   const can = usePolicy(targetGroup ?? ({} as Group));
 
   const navigateToMembers = React.useCallback(() => {
@@ -44,7 +45,7 @@ export function useGroupMenuActions(
       return;
     }
     history.push(settingsPath("groups", targetGroup.id, "members"));
-  }, [targetGroup, history]);
+  }, [targetGroup, history, settingsPath]);
 
   const openEditDialog = React.useCallback(() => {
     if (!targetGroup) {

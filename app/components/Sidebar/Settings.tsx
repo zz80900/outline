@@ -10,7 +10,8 @@ import Scrollable from "~/components/Scrollable";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
-import { settingsPath } from "~/utils/routeHelpers";
+import { getSettingsMode } from "~/utils/routeHelpers";
+import { SettingsItemId, SettingsMode } from "~/utils/settings";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import HistoryNavigation from "./components/HistoryNavigation";
@@ -24,7 +25,8 @@ function SettingsSidebar() {
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation();
-  const configs = useSettingsConfig();
+  const mode = getSettingsMode(location.pathname) ?? SettingsMode.Simplified;
+  const configs = useSettingsConfig({ mode });
 
   const groupedConfig = groupBy(
     configs.filter((item) =>
@@ -58,8 +60,8 @@ function SettingsSidebar() {
                     to={item.path}
                     onClickIntent={item.preload}
                     active={
-                      item.path.startsWith(settingsPath("templates")) ||
-                      item.path.startsWith(settingsPath("groups"))
+                      item.id === SettingsItemId.Templates ||
+                      item.id === SettingsItemId.Groups
                         ? location.pathname.startsWith(item.path)
                         : undefined
                     }

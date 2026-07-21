@@ -5,8 +5,8 @@ import { SettingsSection } from "../sections";
 import type Integration from "~/models/Integration";
 import { DisconnectAnalyticsDialog } from "~/scenes/Settings/components/DisconnectAnalyticsDialog";
 import type { IntegrationType } from "@shared/types";
-import { settingsPath } from "@shared/utils/routeHelpers";
 import history from "~/utils/history";
+import { settingsPathFromLocation } from "~/utils/routeHelpers";
 
 export const disconnectIntegrationFactory = (integration?: Integration) =>
   createAction({
@@ -16,12 +16,12 @@ export const disconnectIntegrationFactory = (integration?: Integration) =>
     icon: <TrashIcon />,
     keywords: "disconnect",
     visible: () => !!integration,
-    perform: async ({ event }) => {
+    perform: async ({ event, location }) => {
       event?.preventDefault();
       event?.stopPropagation();
 
       await integration?.delete();
-      history.push(settingsPath("integrations"));
+      history.push(settingsPathFromLocation(location.pathname, "integrations"));
     },
   });
 
