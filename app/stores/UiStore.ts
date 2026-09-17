@@ -1,5 +1,8 @@
-import { action, computed, observable } from "mobx";
+import { clamp } from "es-toolkit";
+import { t } from "i18next";
+import { action, computed, makeObservable, observable } from "mobx";
 import { flushSync } from "react-dom";
+import { toast } from "sonner";
 import { light as defaultTheme } from "@shared/styles/theme";
 import type { ProsemirrorData } from "@shared/types";
 import Storage from "@shared/utils/Storage";
@@ -13,6 +16,8 @@ import { startViewTransition } from "~/utils/viewTransition";
 import type RootStore from "./RootStore";
 
 const UI_STORE = "UI_STORE";
+// Used by the static page before the UI store is available.
+const THEME_STORAGE_KEY = "theme";
 
 export enum Theme {
   Light = "light",
@@ -44,40 +49,40 @@ type PersistedData = Pick<
 class UiStore {
   // has the user seen the prompt to change the UI language and actioned it
   @observable
-  languagePromptDismissed: boolean | undefined;
+  languagePromptDismissed: boolean | undefined = undefined;
 
   // theme represents the users UI preference (defaults to system)
   @observable
-  theme: Theme;
+  theme: Theme = Theme.System;
 
   // themeOverride is set when a theme query parameter is detected, persists for the session
   @observable
-  themeOverride: Theme | undefined;
+  themeOverride: Theme | undefined = undefined;
 
   // systemTheme represents the system UI theme (Settings -> General in macOS)
   @observable
-  systemTheme: SystemTheme;
+  systemTheme: SystemTheme = SystemTheme.Light;
 
   @observable
   activeModels = observable.map<string, Model>();
 
   @observable
-  observingUserId: string | undefined;
+  observingUserId: string | undefined = undefined;
 
   @observable
   progressBarVisible = false;
 
   @observable
-  tocVisible: boolean | undefined;
+  tocVisible: boolean | undefined = undefined;
 
   @observable
   mobileSidebarVisible = false;
 
   @observable
-  sidebarWidth: number;
+  sidebarWidth: number = defaultTheme.sidebarWidth;
 
   @observable
-  sidebarRightWidth: number;
+  sidebarRightWidth: number = defaultTheme.sidebarRightWidth;
 
   @observable
   sidebarCollapsed = false;
@@ -106,11 +111,10 @@ class UiStore {
   sidebarIsResizing = false;
 
   @observable
-  multiplayerStatus: ConnectionStatus;
+  multiplayerStatus: ConnectionStatus | undefined = undefined;
 
   @observable
-  multiplayerErrorCode?: number;
-
+  multiplayerErrorCode?: number = undefined;
   @observable
   debugSafeArea = false;
 
@@ -155,12 +159,24 @@ class UiStore {
     const data: PersistedData = Storage.get(UI_STORE) || {};
     this.languagePromptDismissed = data.languagePromptDismissed;
     this.sidebarCollapsed = !!data.sidebarCollapsed;
-    this.sidebarWidth = data.sidebarWidth || defaultTheme.sidebarWidth;
-    this.sidebarRightWidth =
-      data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
+    // Widths are clamped as a drag may have been interrupted while stretched beyond the bounds,
+    // or the bounds themselves may have since changed.
+    const { sidebarResizeMinWidth: minWidth, sidebarMaxWidth: maxWidth } =
+      defaultTheme;
+    this.sidebarWidth = clamp(
+      data.sidebarWidth || defaultTheme.sidebarWidth,
+      minWidth,
+      maxWidth
+    );
+    this.sidebarRightWidth = clamp(
+      data.sidebarRightWidth || defaultTheme.sidebarRightWidth,
+      minWidth,
+      maxWidth
+    );
     this.tocVisible = data.tocVisible;
     this.rightSidebar = data.rightSidebar ?? null;
     this.theme = data.theme || Theme.System;
+    Storage.set(THEME_STORAGE_KEY, this.theme);
 
     // system theme listeners
     if (window.matchMedia) {
@@ -202,6 +218,8 @@ class UiStore {
         this.tocVisible = newData.tocVisible;
       }
     });
+
+    makeObservable(this);
   }
 
   /**
@@ -298,6 +316,7 @@ class UiStore {
       flushSync(() => {
         this.theme = theme;
         this.persist();
+        Storage.set(THEME_STORAGE_KEY, this.theme);
       });
     });
   };
@@ -391,6 +410,7 @@ class UiStore {
       this.secondaryRightSidebar = panel;
     } else {
       this.rightSidebar = panel;
+      this.persist();
     }
   };
 
@@ -474,13 +494,32 @@ class UiStore {
     this.debugSafeArea = !this.debugSafeArea;
   };
 
+  /**
+   * Display a toast for an export that is being prepared in the background,
+   * it is updated in place once the export completes or fails.
+   *
+   * @param fileOperationId The identifier of the export file operation.
+   */
   @action
-  registerExportToast = (
-    fileOperationId: string,
-    toastId: string,
-    timeoutId: ReturnType<typeof setTimeout>
-  ) => {
+  showExportToast = (fileOperationId: string) => {
+    const toastId = `export-${fileOperationId}`;
+
+    const timeoutId = setTimeout(() => {
+      toast.success(t("Export started"), {
+        id: toastId,
+        description: t("A link to your file will be sent through email soon"),
+        duration: 3000,
+      });
+      this.exportToasts.delete(fileOperationId);
+    }, 6000);
+
     this.exportToasts.set(fileOperationId, { toastId, timeoutId });
+
+    toast.loading(t("Export started"), {
+      id: toastId,
+      description: `${t("Preparing your download")}…`,
+      duration: Infinity,
+    });
   };
 
   @action

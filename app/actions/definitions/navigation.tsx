@@ -13,6 +13,7 @@ import {
   ShapesIcon,
   DraftsIcon,
   BugIcon,
+  ImportIcon,
 } from "outline-icons";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isMac } from "@shared/utils/browser";
@@ -34,6 +35,7 @@ import {
   archivePath,
   trashPath,
   settingsPath,
+  settingsPathFromLocation,
 } from "~/utils/routeHelpers";
 
 export const navigateToHome = createInternalLinkAction({
@@ -46,12 +48,15 @@ export const navigateToHome = createInternalLinkAction({
   visible: ({ location }) => location.pathname !== homePath(),
 });
 
-export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
+export const navigateToRecentSearchQueryActionFactory = (
+  searchQuery: SearchQuery
+) =>
   createInternalLinkAction({
     section: RecentSearchesSection,
     name: searchQuery.query,
     analyticsName: "Navigate to recent search query",
     icon: <SearchIcon />,
+    visible: ({ isMCP }) => !isMCP,
     to: searchPath({ query: searchQuery.query }),
   });
 
@@ -111,6 +116,22 @@ export const navigateToWorkspaceSettings = createInternalLinkAction({
   to: settingsPath(),
 });
 
+/**
+ * Only visible to workspaces that appear to be newly created and have little
+ * content of their own, so it is intentionally not a root navigation action.
+ */
+export const navigateToImport = createInternalLinkAction({
+  name: ({ t }) => t("Import docs"),
+  analyticsName: "Navigate to import",
+  section: NavigationSection,
+  icon: <ImportIcon />,
+  visible: () =>
+    stores.policies.abilities(stores.auth.team?.id || "").createImport &&
+    stores.collections.all.length === 1 &&
+    stores.documents.all.length < 10,
+  to: ({ location }) => settingsPathFromLocation(location.pathname, "import"),
+});
+
 export const navigateToProfileSettings = createInternalLinkAction({
   name: ({ t }) => t("Profile"),
   analyticsName: "Navigate to profile settings",
@@ -126,7 +147,8 @@ export const navigateToTemplateSettings = createInternalLinkAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <ShapesIcon />,
-  to: settingsPath("templates"),
+  to: ({ location }) =>
+    settingsPathFromLocation(location.pathname, "templates"),
 });
 
 export const navigateToNotificationSettings = createInternalLinkAction({
@@ -136,7 +158,8 @@ export const navigateToNotificationSettings = createInternalLinkAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <EmailIcon />,
-  to: settingsPath("notifications"),
+  to: ({ location }) =>
+    settingsPathFromLocation(location.pathname, "notifications"),
 });
 
 export const navigateToAccountPreferences = createInternalLinkAction({
@@ -145,7 +168,8 @@ export const navigateToAccountPreferences = createInternalLinkAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <SettingsIcon />,
-  to: settingsPath("preferences"),
+  to: ({ location }) =>
+    settingsPathFromLocation(location.pathname, "preferences"),
 });
 
 export const openDocumentation = createExternalLinkAction({

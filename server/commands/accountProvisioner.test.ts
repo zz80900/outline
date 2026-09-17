@@ -1,10 +1,15 @@
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
 import { errToString } from "@shared/utils/error";
-import { TeamDomain } from "@server/models";
+import { Event, TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
-import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
+import {
+  buildUser,
+  buildTeam,
+  buildAdmin,
+  buildSubdomain,
+} from "@server/test/factories";
 import { setSelfHosted } from "@server/test/support";
 import accountProvisioner from "./accountProvisioner";
 import { createContext } from "@server/context";
@@ -27,7 +32,7 @@ describe("accountProvisioner", () => {
           team: {
             name: "New workspace",
             avatarUrl: faker.image.avatar(),
-            subdomain: faker.internet.domainWord(),
+            subdomain: buildSubdomain(),
           },
           authenticationProvider: {
             name: "google",
@@ -57,6 +62,41 @@ describe("accountProvisioner", () => {
       expect(collectionCount).toEqual(1);
     });
 
+    it("should record the request ip on onboarding events", async () => {
+      const { team } = await accountProvisioner(ctx, {
+        user: {
+          name: "Jenny Tester",
+          email: faker.internet.email(),
+          avatarUrl: faker.image.avatar(),
+        },
+        team: {
+          name: "New workspace",
+          avatarUrl: faker.image.avatar(),
+          subdomain: buildSubdomain(),
+        },
+        authenticationProvider: {
+          name: "google",
+          providerId: faker.internet.domainName(),
+        },
+        authentication: {
+          providerId: randomUUID(),
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+
+      const events = await Event.findAll({
+        where: {
+          teamId: team.id,
+          name: ["collections.create", "documents.create"],
+        },
+      });
+      expect(events.length).toBeGreaterThan(0);
+      events.forEach((event) => {
+        expect(event.ip).toEqual(ip);
+      });
+    });
+
     it("should update existing user and authentication", async () => {
       const existingTeam = await buildTeam();
       const providers = await existingTeam.$get("authenticationProviders");
@@ -77,7 +117,7 @@ describe("accountProvisioner", () => {
         team: {
           name: existingTeam.name,
           avatarUrl: existingTeam.avatarUrl,
-          subdomain: faker.internet.domainWord(),
+          subdomain: buildSubdomain(),
         },
         authenticationProvider: {
           name: authenticationProvider.name,
@@ -99,7 +139,7 @@ describe("accountProvisioner", () => {
     });
 
     it("should allow authentication by email matching", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const existingTeam = await buildTeam({
         subdomain,
       });
@@ -142,7 +182,7 @@ describe("accountProvisioner", () => {
     });
 
     it("should not allow authentication by email matching when email is unverified", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const existingTeam = await buildTeam({
         subdomain,
       });
@@ -215,7 +255,7 @@ describe("accountProvisioner", () => {
           team: {
             name: existingTeam.name,
             avatarUrl: existingTeam.avatarUrl,
-            subdomain: faker.internet.domainWord(),
+            subdomain: buildSubdomain(),
           },
           authenticationProvider: {
             name: authenticationProvider.name,
@@ -263,7 +303,7 @@ describe("accountProvisioner", () => {
         team: {
           name: existingTeam.name,
           avatarUrl: existingTeam.avatarUrl,
-          subdomain: faker.internet.domainWord(),
+          subdomain: buildSubdomain(),
         },
         authenticationProvider: {
           name: authenticationProvider.name,
@@ -308,7 +348,7 @@ describe("accountProvisioner", () => {
           },
           team: {
             avatarUrl: existingTeam.avatarUrl,
-            subdomain: faker.internet.domainWord(),
+            subdomain: buildSubdomain(),
           },
           authenticationProvider: {
             name: authenticationProvider.name,
@@ -350,7 +390,7 @@ describe("accountProvisioner", () => {
         },
         team: {
           avatarUrl: team.avatarUrl,
-          subdomain: faker.internet.domainWord(),
+          subdomain: buildSubdomain(),
         },
         authenticationProvider: {
           name: authenticationProvider.name,
@@ -394,7 +434,7 @@ describe("accountProvisioner", () => {
         team: {
           name: team.name,
           avatarUrl: team.avatarUrl,
-          subdomain: faker.internet.domainWord(),
+          subdomain: buildSubdomain(),
         },
         authenticationProvider: {
           name: authenticationProvider.name,
@@ -434,7 +474,7 @@ describe("accountProvisioner", () => {
         team: {
           name: "New workspace",
           avatarUrl: faker.image.avatar(),
-          subdomain: faker.internet.domainWord(),
+          subdomain: buildSubdomain(),
         },
         authenticationProvider: {
           name: "google",
@@ -521,7 +561,7 @@ describe("accountProvisioner", () => {
             teamId: team.id,
             name: team.name,
             avatarUrl: team.avatarUrl,
-            subdomain: faker.internet.domainWord(),
+            subdomain: buildSubdomain(),
           },
           authenticationProvider: {
             name: "google",
@@ -553,7 +593,7 @@ describe("accountProvisioner", () => {
           teamId: team.id,
           name: team.name,
           avatarUrl: team.avatarUrl,
-          subdomain: faker.internet.domainWord(),
+          subdomain: buildSubdomain(),
           domain,
         },
         authenticationProvider: {

@@ -21,7 +21,7 @@ export enum SettingsItemId {
   Authentication = "authentication",
   Security = "security",
   Features = "features",
-  Members = "members",
+  Members = "users",
   Groups = "groups",
   Templates = "templates",
   MCP = "mcp",

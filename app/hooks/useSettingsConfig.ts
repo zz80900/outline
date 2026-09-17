@@ -76,7 +76,7 @@ const Integrations = lazy(() => import("~/scenes/Settings/Integrations"));
 const MCP = lazy(() => import("~/scenes/Settings/MCP"), {
   exportName: "MCP",
 });
-const Members = lazy(() => import("~/scenes/Settings/Members"));
+const Users = lazy(() => import("~/scenes/Settings/Users"));
 const Notifications = lazy(() => import("~/scenes/Settings/Notifications"));
 const Preferences = lazy(() => import("~/scenes/Settings/Preferences"));
 const Profile = lazy(() => import("~/scenes/Settings/Profile"));
@@ -206,10 +206,10 @@ export default function useSettingsConfig(
       },
       {
         id: SettingsItemId.Members,
-        name: t("Members"),
+        name: t("Users"),
         path: settingsPathForMode(mode, SettingsItemId.Members),
-        component: Members.Component,
-        preload: Members.preload,
+        component: Users.Component,
+        preload: Users.preload,
         enabled: can.listUsers,
         group: workspaceGroup,
         groupId: SettingsGroup.Workspace,

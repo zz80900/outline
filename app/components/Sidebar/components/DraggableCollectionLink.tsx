@@ -1,5 +1,6 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
+import type * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import type { DropTargetMonitor } from "react-dnd";
 import { useDrop, useDrag } from "react-dnd";
@@ -58,7 +59,7 @@ function DraggableCollectionLink({
     canDrop: (item) =>
       collection.id !== item.id &&
       (!belowCollection || item.id !== belowCollection.id) &&
-      policies.abilities(item.id)?.move,
+      !!policies.abilities(item.id).move,
     collect: (monitor: DropTargetMonitor<Collection, Collection>) => ({
       isCollectionDropping: monitor.isOver(),
       isDraggingAnyCollection: monitor.canDrop(),
@@ -99,7 +100,7 @@ function DraggableCollectionLink({
   ]);
 
   const handleDisclosureClick = useCallback(
-    (ev) => {
+    (ev?: React.MouseEvent<HTMLElement>) => {
       ev?.preventDefault();
       setExpanded((e) => {
         const willExpand = !e;

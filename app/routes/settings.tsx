@@ -1,4 +1,4 @@
-import { Switch, useLocation } from "react-router-dom";
+import { Redirect, Switch, useLocation } from "react-router-dom";
 import { observer } from "mobx-react";
 import Error404 from "~/scenes/Errors/Error404";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";
@@ -36,6 +36,12 @@ function SettingsRoutes() {
           component={config.component}
         />
       ))}
+      {/* Members was renamed to Users, redirect for backwards compatibility */}
+      <Redirect
+        exact
+        from={settingsPathForMode(mode, "members")}
+        to={settingsPathForMode(mode, "users")}
+      />
       {/* TODO: Refactor these exceptions into config? */}
       <Route
         exact
