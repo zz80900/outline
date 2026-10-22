@@ -915,7 +915,9 @@ describe("super administrator", () => {
         teamId: team.id,
         collectionId: collection.id,
       });
-      const document = await Document.findByPk(doc.id, { userId: superAdmin.id });
+      const document = await Document.findByPk(doc.id, {
+        userId: superAdmin.id,
+      });
       const abilities = serialize(superAdmin, document);
       expect(abilities.read).toBeTruthy();
       expect(abilities.download).toBeTruthy();
@@ -944,7 +946,9 @@ describe("super administrator", () => {
         collectionId: collection.id,
         createdById: admin.id,
       });
-      const document = await Document.findByPk(doc.id, { userId: superAdmin.id });
+      const document = await Document.findByPk(doc.id, {
+        userId: superAdmin.id,
+      });
       const abilities = serialize(superAdmin, document);
       expect(abilities.read).toBeTruthy();
     } finally {
@@ -970,7 +974,9 @@ describe("super administrator", () => {
         teamId: team2.id,
         collectionId: collection.id,
       });
-      const document = await Document.findByPk(doc.id, { userId: superAdmin.id });
+      const document = await Document.findByPk(doc.id, {
+        userId: superAdmin.id,
+      });
       const abilities = serialize(superAdmin, document);
       expect(abilities.read).toEqual(false);
       expect(abilities.download).toEqual(false);
@@ -995,7 +1001,9 @@ describe("super administrator", () => {
         teamId: team.id,
         collectionId: collection.id,
       });
-      const document = await Document.findByPk(doc.id, { userId: regularUser.id });
+      const document = await Document.findByPk(doc.id, {
+        userId: regularUser.id,
+      });
       const abilities = serialize(regularUser, document);
       expect(abilities.read).toEqual(false);
     } finally {
