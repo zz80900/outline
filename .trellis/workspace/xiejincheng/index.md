@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 1
+- **Total Sessions**: 2
 - **Last Active**: 2026-10-22
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~34 | Active |
+| `journal-1.md` | ~58 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 2 | 2026-10-22 | Markdown export metadata round-trip | `c2fc5cc31`, `28fb6963b`, `516b374a1` | `main` |
 | 1 | 2026-10-22 | Trellis bootstrap and OpenSpec migration | `aeabfcb75`, `c89ad3850`, `6f5d46c75`, `9499f4a88`, `0557be279`, `1eb3ff15f` | `main` |
 <!-- @@@/auto:session-history -->
 

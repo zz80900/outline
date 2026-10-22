@@ -32,3 +32,27 @@ Merged upstream/main (314 commits) and fixed settings/MCP compatibility. Initial
 ### Status
 
 [OK] **Completed**
+
+
+## Session 2: Markdown export metadata round-trip
+<!-- trellis-session: v=2 fp=6c877c144ed1fd3f -->
+
+**Date**: 2026-10-22
+**Task**: Markdown export metadata round-trip
+**Branch**: `main`
+
+### Summary
+
+MarkdownZip export now omits the duplicated H1 title and writes source metadata as YAML frontmatter. Added a read-only source metadata block at the top of the document editor. Import now restores sourceMetadata from frontmatter for web import, OpenAPI documents.import and documents.create, and MCP create_document. Verified with PostgreSQL running in a WSL Docker container: export, import, API, MCP and component tests pass; pre-existing Windows TextBundle path and PDF fixture failures are unchanged.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c2fc5cc31` | chore(task): plan markdown export metadata |
+| `28fb6963b` | feat: export markdown source metadata as frontmatter |
+| `516b374a1` | feat: import source metadata from markdown frontmatter |
+
+### Status
+
+[OK] **Completed**
