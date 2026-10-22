@@ -100,6 +100,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
         title,
         icon,
         sourceMetadata: convertedSourceMetadata,
+        frontmatterSource,
       } = await documentImporter({
         user,
         fileName: sourceMetadata.fileName,
@@ -120,6 +121,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
             sourceMetadata: {
               ...sourceMetadata,
               ...convertedSourceMetadata,
+              ...(frontmatterSource ? { frontmatter: frontmatterSource } : {}),
             },
             title: attributes?.title ?? title,
             icon: attributes?.icon ?? icon,

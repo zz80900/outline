@@ -79,7 +79,21 @@ describe("ExportMarkdownZipTask", () => {
       userId: user.id,
       collectionId: collection.id,
       title: "Imported",
-      sourceMetadata: { fileName: "source.md", createdByName: "Alice" },
+      sourceMetadata: { fileName: "source.md", frontmatter: "name: imported" },
+      content: {
+        type: "doc",
+        content: [
+          {
+            type: "code_block",
+            attrs: { language: "yaml", frontmatter: true },
+            content: [{ type: "text", text: "name: imported" }],
+          },
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Body" }],
+          },
+        ],
+      },
     });
     const local = await buildDocument({
       teamId: team.id,
@@ -104,9 +118,8 @@ describe("ExportMarkdownZipTask", () => {
       const localText = contents[`${collection.name}/Local.md`];
 
       expect(importedText).not.toContain("# Imported");
-      expect(importedText.startsWith("---\nsource:\n")).toBe(true);
-      expect(importedText).toContain("fileName: source.md");
-      expect(importedText).toContain("createdByName: Alice");
+      expect(importedText.startsWith("---\nname: imported\n---")).toBe(true);
+      expect(importedText).not.toContain("source:");
 
       expect(localText).not.toContain("# Local");
       expect(localText.startsWith("---")).toBe(false);

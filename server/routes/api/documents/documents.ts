@@ -33,6 +33,7 @@ import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
 import env from "@server/env";
 import {
+  getFrontmatterSource,
   parseFrontmatter,
   parseSourceMetadata,
   stripFrontmatter,
@@ -1027,16 +1028,12 @@ router.post(
     let contentType: string;
     let content: string;
 
-    const toMarkdown = async (
-      includeTitle = true,
-      includeSourceMetadata = false
-    ) =>
+    const toMarkdown = async (includeTitle = true) =>
       DocumentHelper.toMarkdown(document, {
         signedUrls,
         teamId: user.teamId,
         commonMark: true,
         includeTitle,
-        includeSourceMetadata,
       });
 
     // A TextBundle is a directory of files, so unlike the other formats it has
@@ -1051,8 +1048,7 @@ router.post(
       });
     } else if (isTextBundle || format === FileOperationFormat.MarkdownZip) {
       contentType = "text/markdown";
-      const isMarkdown = format === FileOperationFormat.MarkdownZip;
-      content = await toMarkdown(!isMarkdown, isMarkdown);
+      content = await toMarkdown(format !== FileOperationFormat.MarkdownZip);
     } else {
       ctx.body = {
         data: await toMarkdown(),
@@ -1892,6 +1888,7 @@ router.post(
     // from the body before the content is stored.
     const frontmatter = text ? parseFrontmatter(text) : undefined;
     const sourceMetadata = parseSourceMetadata(frontmatter);
+    const frontmatterSource = text ? getFrontmatterSource(text) : undefined;
     const body = text ? stripFrontmatter(text) : text;
 
     // Pre-process text to convert bare embed URLs to markdown link format
@@ -1918,7 +1915,12 @@ router.post(
       fullWidth,
       preferences,
       editorVersion,
-      sourceMetadata,
+      sourceMetadata: sourceMetadata || frontmatterSource
+        ? {
+            ...sourceMetadata,
+            ...(frontmatterSource ? { frontmatter: frontmatterSource } : {}),
+          }
+        : undefined,
     });
 
     if (collection) {

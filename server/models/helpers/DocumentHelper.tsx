@@ -1,5 +1,4 @@
 import { isEqual, omit } from "es-toolkit/compat";
-import yaml from "js-yaml";
 import type { JSDOM } from "jsdom";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
@@ -12,11 +11,7 @@ import {
 import { HeadingSlugger } from "@shared/editor/lib/headingToSlug";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import type {
-  NavigationNode,
-  ProsemirrorData,
-  SourceMetadata,
-} from "@shared/types";
+import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
@@ -30,18 +25,6 @@ import { Collection, Document, Revision } from "@server/models";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 import { TextHelper } from "./TextHelper";
-
-/** Source metadata fields that are safe to export in Markdown frontmatter. */
-const sourceMetadataKeys = [
-  "fileName",
-  "mimeType",
-  "createdByName",
-  "externalId",
-  "externalName",
-  "originalDocumentId",
-  "originalCollectionId",
-  "authType",
-] as const satisfies readonly (keyof SourceMetadata)[];
 
 /** Maps a range of text-content offsets to ProseMirror Fragment offsets. */
 interface InlineSegment {
@@ -356,11 +339,6 @@ export class DocumentHelper {
        * (default: false)
        */
       commonMark?: boolean;
-      /**
-       * Whether to prepend the document's source metadata as YAML
-       * frontmatter (default: false)
-       */
-      includeSourceMetadata?: boolean;
     }
   ) {
     let node = DocumentHelper.toProsemirror(document);
@@ -374,15 +352,24 @@ export class DocumentHelper {
       node = Node.fromJSON(schema, data);
     }
 
-    // A marked YAML code block at the top of the document came from Markdown
-    // frontmatter, restore its `---` form on export.
-    let frontmatterText = "";
+    // A YAML code block at the top of the document came from Markdown
+    // frontmatter; restore its `---` form on export. The marker attribute can
+    // be lost when an older client re-saves the document, so the stored source
+    // frontmatter is also matched by content.
+    const sourceFrontmatter =
+      document instanceof Document || document instanceof Revision
+        ? document.sourceMetadata?.frontmatter
+        : undefined;
     const firstChild = node.firstChild;
-    if (
+    const isFrontmatterBlock =
       firstChild?.type.name === "code_block" &&
-      firstChild.attrs.frontmatter === true
-    ) {
-      frontmatterText = `---\n${firstChild.textContent}\n---\n\n`;
+      (firstChild.attrs.frontmatter === true ||
+        (!!sourceFrontmatter &&
+          firstChild.textContent.trim() === sourceFrontmatter.trim()));
+
+    let frontmatterText = "";
+    if (isFrontmatterBlock) {
+      frontmatterText = `---\n${firstChild.textContent.trim()}\n---\n\n`;
       node = node.copy(node.content.cut(firstChild.nodeSize));
     }
 
@@ -390,12 +377,6 @@ export class DocumentHelper {
       .serialize(node, { commonMark: options?.commonMark })
       .replace(/(^|\n)\\(\n|$)/g, "\n\n")
       .trim();
-
-    const frontmatter =
-      frontmatterText ||
-      (options?.includeSourceMetadata && document instanceof Document
-        ? DocumentHelper.toSourceFrontmatter(document)
-        : "");
 
     if (
       (document instanceof Collection ||
@@ -407,38 +388,10 @@ export class DocumentHelper {
       const name =
         document instanceof Collection ? document.name : document.title;
       const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${name}`;
-      return `${frontmatter}# ${title}\n\n${text}`;
+      return `${frontmatterText}# ${title}\n\n${text}`;
     }
 
-    return `${frontmatter}${text}`;
-  }
-
-  /**
-   * Returns the document's source metadata as a YAML frontmatter block.
-   *
-   * @param document The document to read source metadata from.
-   * @returns A `---` delimited YAML block, or an empty string when there is no
-   *   source metadata to export.
-   */
-  private static toSourceFrontmatter(document: Document): string {
-    const metadata = document.sourceMetadata;
-    if (!metadata) {
-      return "";
-    }
-
-    const source: Partial<Record<keyof SourceMetadata, string>> = {};
-    for (const key of sourceMetadataKeys) {
-      const value = metadata[key];
-      if (value !== undefined && value !== null && value !== "") {
-        source[key] = value;
-      }
-    }
-
-    if (Object.keys(source).length === 0) {
-      return "";
-    }
-
-    return `---\n${yaml.dump({ source }, { noRefs: true, lineWidth: -1 })}---\n\n`;
+    return `${frontmatterText}${text}`;
   }
 
   /**

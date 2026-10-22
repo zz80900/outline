@@ -42,6 +42,7 @@ import { TextEditMode } from "@shared/types";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import {
+  getFrontmatterSource,
   parseFrontmatter,
   parseSourceMetadata,
   stripFrontmatter,
@@ -478,11 +479,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     ? parseFrontmatter(input.text)
                     : undefined;
                   const sourceMetadata = parseSourceMetadata(frontmatter);
+                  const frontmatterSource = input.text
+                    ? getFrontmatterSource(input.text)
+                    : undefined;
                   const body = input.text
                     ? stripFrontmatter(input.text)
                     : input.text;
                   const mergedSourceMetadata =
-                    sourceMetadata || input.sourceFileName
+                    sourceMetadata || input.sourceFileName || frontmatterSource
                       ? {
                           ...(input.sourceFileName
                             ? {
@@ -491,6 +495,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
                               }
                             : {}),
                           ...sourceMetadata,
+                          ...(frontmatterSource
+                            ? { frontmatter: frontmatterSource }
+                            : {}),
                         }
                       : undefined;
 

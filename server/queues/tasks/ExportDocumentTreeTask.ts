@@ -105,7 +105,6 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         : await DocumentHelper.toMarkdown(document, {
             commonMark: true,
             includeTitle: !isMarkdown,
-            includeSourceMetadata: isMarkdown,
           });
 
     const isTextBundle = format === FileOperationFormat.TextBundleZip;

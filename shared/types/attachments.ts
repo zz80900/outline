@@ -29,4 +29,6 @@ export type SourceMetadata = {
   originalCollectionId?: string;
   /** The type of authentication used to make the change. */
   authType?: AuthenticationType;
+  /** The raw YAML frontmatter the document was imported from, if any. */
+  frontmatter?: string;
 };

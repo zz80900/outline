@@ -24,6 +24,8 @@ export interface ConvertResult {
   icon?: string;
   /** Source metadata parsed from frontmatter, when present. */
   sourceMetadata?: SourceMetadata;
+  /** Raw YAML frontmatter source, when present. */
+  frontmatterSource?: string;
 }
 
 /**
@@ -150,6 +152,7 @@ export class DocumentConverter extends BaseConverter {
       title,
       icon,
       sourceMetadata,
+      frontmatterSource,
     };
   }
 

@@ -25,6 +25,8 @@ type ImportResult = {
   state: Buffer;
   /** Source metadata parsed from frontmatter, when present. */
   sourceMetadata?: SourceMetadata;
+  /** Raw YAML frontmatter source, when present. */
+  frontmatterSource?: string;
 };
 
 /**
@@ -81,6 +83,7 @@ async function documentImporter({
     title: extractedTitle,
     icon,
     sourceMetadata,
+    frontmatterSource,
   } = await DocumentConverter.convert(content, fileName, mimeType);
 
   // Use extracted title or fall back to filename
@@ -104,7 +107,7 @@ async function documentImporter({
   title = truncate(title, { length: DocumentValidation.maxTitleLength });
   const state = convertToState(processedDoc.toJSON() as ProsemirrorData, title);
 
-  return { text, state, title, icon, sourceMetadata };
+  return { text, state, title, icon, sourceMetadata, frontmatterSource };
 }
 
 export default traceFunction({

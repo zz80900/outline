@@ -620,7 +620,7 @@ This is a [test paragraph](https://example.net)`,
       expect(result).not.toContain("# Example title");
     });
 
-    it("should not include source frontmatter by default", async () => {
+    it("should not generate frontmatter from source metadata", async () => {
       const document = await buildDocument({
         sourceMetadata: { fileName: "report.docx" },
       });
@@ -628,44 +628,7 @@ This is a [test paragraph](https://example.net)`,
         includeTitle: false,
       });
       expect(result.startsWith("---")).toBe(false);
-    });
-
-    it("should prepend source metadata as YAML frontmatter", async () => {
-      const document = await buildDocument({
-        sourceMetadata: {
-          fileName: "report.docx",
-          createdByName: "Alice",
-          originalDocumentId: "doc-123",
-        },
-      });
-      const result = await DocumentHelper.toMarkdown(document, {
-        includeTitle: false,
-        includeSourceMetadata: true,
-      });
-      expect(result.startsWith("---\n")).toBe(true);
-      expect(result).toContain("source:\n  fileName: report.docx");
-      expect(result).toContain("  createdByName: Alice");
-      expect(result).toContain("  originalDocumentId: doc-123");
-      expect(result).not.toContain("# Example");
-    });
-
-    it("should strip exported frontmatter when re-imported", async () => {
-      const document = await buildDocument({
-        sourceMetadata: { fileName: "report.docx" },
-      });
-      const exported = await DocumentHelper.toMarkdown(document, {
-        includeTitle: false,
-        includeSourceMetadata: true,
-      });
-      const imported = await DocumentConverter.convert(
-        exported,
-        "report.md",
-        "text/markdown"
-      );
-      const first = imported.doc.firstChild;
-      expect(first?.type.name).toEqual("code_block");
-      expect(first?.attrs.frontmatter).toEqual(true);
-      expect(first?.textContent).toContain("source:");
+      expect(result).not.toContain("source:");
     });
 
     it("should preserve the frontmatter marker through persistence", async () => {
@@ -692,7 +655,6 @@ This is a [test paragraph](https://example.net)`,
 
     it("should restore a marked YAML code block as frontmatter", async () => {
       const document = await buildDocument({
-        sourceMetadata: { fileName: "report.docx" },
         content: {
           type: "doc",
           content: [
@@ -716,24 +678,40 @@ This is a [test paragraph](https://example.net)`,
 
       const result = await DocumentHelper.toMarkdown(document, {
         includeTitle: false,
-        includeSourceMetadata: true,
       });
 
       expect(result).toContain(
         "---\nname: code-archaeology\ndescription: Investigate legacy code.\n---\n\nBody"
       );
       expect(result).not.toContain("```");
-      // Generated source frontmatter is skipped in favor of the body block.
       expect(result).not.toContain("source:");
     });
 
-    it("should omit frontmatter when a document has no source metadata", async () => {
-      const document = await buildDocument({ sourceMetadata: null });
+    it("should restore frontmatter when the marker was lost", async () => {
+      const document = await buildDocument({
+        sourceMetadata: { frontmatter: "name: test" },
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "code_block",
+              attrs: { language: "yaml" },
+              content: [{ type: "text", text: "name: test" }],
+            },
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Body" }],
+            },
+          ],
+        },
+      });
+
       const result = await DocumentHelper.toMarkdown(document, {
         includeTitle: false,
-        includeSourceMetadata: true,
       });
-      expect(result.startsWith("---")).toBe(false);
+
+      expect(result.startsWith("---\nname: test\n---")).toBe(true);
+      expect(result).not.toContain("```");
     });
 
     it("should preserve smart quotes rather than flattening them", async () => {
