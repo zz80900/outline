@@ -94,19 +94,6 @@ export class DocumentConverter extends BaseConverter {
         mimeType
       );
       doc = ProsemirrorHelper.toProsemirror(markdown);
-
-      // Frontmatter is shown in the document body as a YAML code block,
-      // marked so that Markdown export can restore the `---` form.
-      if (frontmatterSource) {
-        doc = doc.copy(
-          Fragment.fromArray([
-            schema.nodes.code_block.create(
-              { language: "yaml", frontmatter: true },
-              schema.text(frontmatterSource)
-            ),
-          ]).append(doc.content)
-        );
-      }
     }
 
     // A leading H1 that repeats the frontmatter title is a duplicate of it.
@@ -138,6 +125,20 @@ export class DocumentConverter extends BaseConverter {
         ProsemirrorHelper.extractEmojiFromStart(doc);
       icon = emoji;
       doc = docWithoutEmoji;
+    }
+
+    // Frontmatter is shown in the document body as a YAML code block, marked
+    // so that Markdown export can restore the `---` form. Inserted after title
+    // and icon extraction so a leading H1 is still lifted out of the body.
+    if (frontmatterSource) {
+      doc = doc.copy(
+        Fragment.fromArray([
+          schema.nodes.code_block.create(
+            { language: "yaml", frontmatter: true },
+            schema.text(frontmatterSource)
+          ),
+        ]).append(doc.content)
+      );
     }
 
     // Serialize to markdown and trim whitespace

@@ -178,16 +178,19 @@ class FileOperation extends ParanoidModel<
     const personalOwnerId = sourceCollection?.ownerId ?? undefined;
     const ephemeral = user.isSuperAdmin;
 
+    const documentOptions = {
+      ...(personalOwnerId ? { personalOwnerId } : {}),
+      ...(ephemeral ? { ephemeral: true } : {}),
+    };
+
     const source =
       "document" in options
         ? {
             name: options.document.displayTitle,
             documentId: options.document.id,
             teamId: options.document.teamId,
-            options: {
-              ...(personalOwnerId ? { personalOwnerId } : {}),
-              ...(ephemeral ? { ephemeral: true } : {}),
-            },
+            options:
+              Object.keys(documentOptions).length > 0 ? documentOptions : null,
           }
         : {
             name: options.collection?.name || options.team.name,

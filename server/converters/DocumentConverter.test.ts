@@ -461,6 +461,15 @@ Body`;
         expect(first?.textContent).toContain(
           "description: Investigate legacy code."
         );
+        expect(result.title).toEqual("Title");
+
+        let headingCount = 0;
+        result.doc.descendants((node) => {
+          if (node.type.name === "heading") {
+            headingCount += 1;
+          }
+        });
+        expect(headingCount).toEqual(0);
       });
 
       it("should not extract source metadata without a source block", async () => {

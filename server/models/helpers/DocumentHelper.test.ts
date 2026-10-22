@@ -1,4 +1,5 @@
 import { DocumentConverter } from "@server/converters/DocumentConverter";
+import { Document } from "@server/models";
 import Revision from "@server/models/Revision";
 import { buildCollection, buildDocument } from "@server/test/factories";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
@@ -665,6 +666,28 @@ This is a [test paragraph](https://example.net)`,
       expect(first?.type.name).toEqual("code_block");
       expect(first?.attrs.frontmatter).toEqual(true);
       expect(first?.textContent).toContain("source:");
+    });
+
+    it("should preserve the frontmatter marker through persistence", async () => {
+      const converted = await DocumentConverter.convert(
+        "---\nname: test\n---\n\n# Title\n\nBody",
+        "SKILL.md",
+        "text/markdown"
+      );
+      const created = await buildDocument({
+        content: converted.doc.toJSON(),
+      });
+      const reloaded = await Document.findByPk(created.id, {
+        rejectOnEmpty: true,
+      });
+
+      const result = await DocumentHelper.toMarkdown(reloaded, {
+        includeTitle: false,
+      });
+
+      expect(result.startsWith("---\nname: test\n---")).toBe(true);
+      expect(result).not.toContain("# Title");
+      expect(result).toContain("Body");
     });
 
     it("should restore a marked YAML code block as frontmatter", async () => {

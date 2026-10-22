@@ -1027,11 +1027,16 @@ router.post(
     let contentType: string;
     let content: string;
 
-    const toMarkdown = async () =>
+    const toMarkdown = async (
+      includeTitle = true,
+      includeSourceMetadata = false
+    ) =>
       DocumentHelper.toMarkdown(document, {
         signedUrls,
         teamId: user.teamId,
         commonMark: true,
+        includeTitle,
+        includeSourceMetadata,
       });
 
     // A TextBundle is a directory of files, so unlike the other formats it has
@@ -1046,7 +1051,8 @@ router.post(
       });
     } else if (isTextBundle || format === FileOperationFormat.MarkdownZip) {
       contentType = "text/markdown";
-      content = await toMarkdown();
+      const isMarkdown = format === FileOperationFormat.MarkdownZip;
+      content = await toMarkdown(!isMarkdown, isMarkdown);
     } else {
       ctx.body = {
         data: await toMarkdown(),

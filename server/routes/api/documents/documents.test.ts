@@ -681,7 +681,9 @@ describe("#documents.export", () => {
       },
     });
     const body = await res.text();
-    expect(body).toEqual(await DocumentHelper.toMarkdown(document));
+    expect(body).toEqual(
+      await DocumentHelper.toMarkdown(document, { includeTitle: false })
+    );
   });
 
   it("should return archived document", async () => {
