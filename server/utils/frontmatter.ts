@@ -65,6 +65,28 @@ export function stripFrontmatter(content: string): string {
 }
 
 /**
+ * Returns the raw YAML source of a valid frontmatter block.
+ *
+ * @param content The markdown content that may contain frontmatter.
+ * @returns The YAML between the delimiters, or undefined when no valid
+ *   frontmatter is present.
+ */
+export function getFrontmatterSource(content: string): string | undefined {
+  const match = content.match(frontmatterRegex);
+  if (!match) {
+    return undefined;
+  }
+
+  try {
+    yaml.load(match[1]);
+  } catch {
+    return undefined;
+  }
+
+  return match[1].trim();
+}
+
+/**
  * Extracts supported source metadata from parsed frontmatter.
  *
  * @param frontmatter The parsed frontmatter object.

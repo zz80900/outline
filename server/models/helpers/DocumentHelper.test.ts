@@ -661,7 +661,47 @@ This is a [test paragraph](https://example.net)`,
         "report.md",
         "text/markdown"
       );
-      expect(imported.text).not.toContain("source:");
+      const first = imported.doc.firstChild;
+      expect(first?.type.name).toEqual("code_block");
+      expect(first?.attrs.frontmatter).toEqual(true);
+      expect(first?.textContent).toContain("source:");
+    });
+
+    it("should restore a marked YAML code block as frontmatter", async () => {
+      const document = await buildDocument({
+        sourceMetadata: { fileName: "report.docx" },
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "code_block",
+              attrs: { language: "yaml", frontmatter: true },
+              content: [
+                {
+                  type: "text",
+                  text: "name: code-archaeology\ndescription: Investigate legacy code.",
+                },
+              ],
+            },
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Body" }],
+            },
+          ],
+        },
+      });
+
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+        includeSourceMetadata: true,
+      });
+
+      expect(result).toContain(
+        "---\nname: code-archaeology\ndescription: Investigate legacy code.\n---\n\nBody"
+      );
+      expect(result).not.toContain("```");
+      // Generated source frontmatter is skipped in favor of the body block.
+      expect(result).not.toContain("source:");
     });
 
     it("should omit frontmatter when a document has no source metadata", async () => {

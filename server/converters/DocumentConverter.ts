@@ -1,12 +1,15 @@
 import type { Node } from "prosemirror-model";
-import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
+import { DOMParser as ProsemirrorDOMParser, Fragment } from "prosemirror-model";
 import type { SourceMetadata } from "@shared/types";
 import { splitLeadingEmoji } from "@shared/utils/parseTitle";
 import { schema, serializer } from "@server/editor";
 import { FileImportError } from "@server/errors";
 import { trace } from "@server/logging/tracing";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import { parseSourceMetadata } from "@server/utils/frontmatter";
+import {
+  parseSourceMetadata,
+  getFrontmatterSource,
+} from "@server/utils/frontmatter";
 import { BaseConverter } from "./BaseConverter";
 import { HtmlPreprocessor } from "./HtmlPreprocessor";
 
@@ -56,6 +59,7 @@ export class DocumentConverter extends BaseConverter {
     let icon: string | undefined;
     let frontmatterTitle: string | undefined;
     let sourceMetadata: SourceMetadata | undefined;
+    let frontmatterSource: string | undefined;
 
     // Route to appropriate conversion method
     const html = await this.convertToHtml(content, fileName, mimeType);
@@ -69,8 +73,10 @@ export class DocumentConverter extends BaseConverter {
           ? content.startsWith("---\n")
           : content.subarray(0, 4).toString("utf8") === "---\n";
       if (hasFrontmatterPrefix) {
-        const frontmatter = this.parseFrontmatter(this.bufferToString(content));
+        const contentString = this.bufferToString(content);
+        const frontmatter = this.parseFrontmatter(contentString);
         sourceMetadata = parseSourceMetadata(frontmatter);
+        frontmatterSource = getFrontmatterSource(contentString);
         if (
           typeof frontmatter?.title === "string" &&
           frontmatter.title.trim()
@@ -88,6 +94,19 @@ export class DocumentConverter extends BaseConverter {
         mimeType
       );
       doc = ProsemirrorHelper.toProsemirror(markdown);
+
+      // Frontmatter is shown in the document body as a YAML code block,
+      // marked so that Markdown export can restore the `---` form.
+      if (frontmatterSource) {
+        doc = doc.copy(
+          Fragment.fromArray([
+            schema.nodes.code_block.create(
+              { language: "yaml", frontmatter: true },
+              schema.text(frontmatterSource)
+            ),
+          ]).append(doc.content)
+        );
+      }
     }
 
     // A leading H1 that repeats the frontmatter title is a duplicate of it.

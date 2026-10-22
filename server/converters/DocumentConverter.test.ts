@@ -431,10 +431,39 @@ Body`;
           fileName: "report.docx",
           createdByName: "Alice",
         });
-        expect(result.text).not.toContain("report.docx");
+        const first = result.doc.firstChild;
+        expect(first?.type.name).toEqual("code_block");
+        expect(first?.attrs.frontmatter).toEqual(true);
+        expect(first?.textContent).toContain("fileName: report.docx");
       });
 
-      it("should not set source metadata without a source block", async () => {
+      it("should render frontmatter as a marked YAML code block", async () => {
+        const md = `---
+name: code-archaeology
+description: Investigate legacy code.
+---
+
+# Title
+
+Body`;
+
+        const result = await DocumentConverter.convert(
+          md,
+          "SKILL.md",
+          "text/markdown"
+        );
+
+        const first = result.doc.firstChild;
+        expect(first?.type.name).toEqual("code_block");
+        expect(first?.attrs.frontmatter).toEqual(true);
+        expect(first?.attrs.language).toEqual("yaml");
+        expect(first?.textContent).toContain("name: code-archaeology");
+        expect(first?.textContent).toContain(
+          "description: Investigate legacy code."
+        );
+      });
+
+      it("should not extract source metadata without a source block", async () => {
         const result = await DocumentConverter.convert(
           "---\ntitle: Test\n---\n\nBody",
           "test.md",

@@ -19,6 +19,16 @@ function DocumentSourceMetadata({ document }: Props) {
   const { t } = useTranslation();
   const { sourceMetadata } = document;
 
+  // Imported frontmatter is already rendered as a YAML code block at the top
+  // of the document, so the source summary would duplicate it.
+  const firstNode = document.data?.content?.[0];
+  if (
+    firstNode?.type === "code_block" &&
+    firstNode.attrs?.frontmatter === true
+  ) {
+    return null;
+  }
+
   if (!sourceMetadata) {
     return null;
   }

@@ -1,10 +1,18 @@
 import {
+  getFrontmatterSource,
   parseFrontmatter,
   parseSourceMetadata,
   stripFrontmatter,
 } from "./frontmatter";
 
 describe("frontmatter", () => {
+  it("should return the raw frontmatter source", () => {
+    expect(getFrontmatterSource("---\nname: test\n---\n\nBody")).toBe(
+      "name: test"
+    );
+    expect(getFrontmatterSource("Body")).toBeUndefined();
+  });
+
   it("should parse a valid frontmatter block", () => {
     expect(parseFrontmatter("---\ntitle: Test\n---\n\nBody")).toEqual({
       title: "Test",

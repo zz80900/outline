@@ -258,6 +258,10 @@ export default class CodeFence extends Node<CodeFenceOptions> {
           default: false,
           validate: "boolean",
         },
+        frontmatter: {
+          default: false,
+          validate: "boolean",
+        },
       },
       content: "text*",
       marks: "comment",

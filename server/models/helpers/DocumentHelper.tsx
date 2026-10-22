@@ -374,15 +374,28 @@ export class DocumentHelper {
       node = Node.fromJSON(schema, data);
     }
 
+    // A marked YAML code block at the top of the document came from Markdown
+    // frontmatter, restore its `---` form on export.
+    let frontmatterText = "";
+    const firstChild = node.firstChild;
+    if (
+      firstChild?.type.name === "code_block" &&
+      firstChild.attrs.frontmatter === true
+    ) {
+      frontmatterText = `---\n${firstChild.textContent}\n---\n\n`;
+      node = node.copy(node.content.cut(firstChild.nodeSize));
+    }
+
     const text = serializer
       .serialize(node, { commonMark: options?.commonMark })
       .replace(/(^|\n)\\(\n|$)/g, "\n\n")
       .trim();
 
     const frontmatter =
-      options?.includeSourceMetadata && document instanceof Document
+      frontmatterText ||
+      (options?.includeSourceMetadata && document instanceof Document
         ? DocumentHelper.toSourceFrontmatter(document)
-        : "";
+        : "");
 
     if (
       (document instanceof Collection ||
