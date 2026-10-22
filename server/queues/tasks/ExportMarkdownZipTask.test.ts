@@ -67,6 +67,54 @@ describe("ExportMarkdownZipTask", () => {
     }
   });
 
+  it("should omit the title heading and export source metadata", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      createdById: user.id,
+    });
+    const imported = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Imported",
+      sourceMetadata: { fileName: "source.md", createdByName: "Alice" },
+    });
+    const local = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Local",
+    });
+    for (const document of [imported, local]) {
+      await collection.addDocumentToStructure(document);
+    }
+    const fileOperation = await buildFileOperation({
+      teamId: team.id,
+      userId: user.id,
+    });
+
+    const task = new ExportMarkdownZipTask();
+    const filePath = await task.exportCollections([collection], fileOperation);
+
+    try {
+      const contents = await readZipContents(filePath);
+      const importedText = contents[`${collection.name}/Imported.md`];
+      const localText = contents[`${collection.name}/Local.md`];
+
+      expect(importedText).not.toContain("# Imported");
+      expect(importedText.startsWith("---\nsource:\n")).toBe(true);
+      expect(importedText).toContain("fileName: source.md");
+      expect(importedText).toContain("createdByName: Alice");
+
+      expect(localText).not.toContain("# Local");
+      expect(localText.startsWith("---")).toBe(false);
+    } finally {
+      await fs.remove(filePath);
+    }
+  });
+
   it("should stream attachment contents into the zip file", async () => {
     const { collection, attachment, fileOperation } =
       await buildDocumentWithAttachment();

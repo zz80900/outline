@@ -74,6 +74,41 @@ describe("ExportTextBundleZipTask", () => {
     }
   });
 
+  it("should keep the title heading and omit frontmatter", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      createdById: user.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Imported",
+      sourceMetadata: { fileName: "source.md" },
+    });
+    await collection.addDocumentToStructure(document);
+    const fileOperation = await buildFileOperation({
+      teamId: team.id,
+      userId: user.id,
+    });
+
+    const task = new ExportTextBundleZipTask();
+    const filePath = await task.exportCollections([collection], fileOperation);
+
+    try {
+      const contents = await readZipContents(filePath);
+      const text =
+        contents[`${collection.name}/Imported.textbundle/text.markdown`];
+
+      expect(text.startsWith("# Imported")).toBe(true);
+      expect(text).not.toContain("source:");
+    } finally {
+      await fs.remove(filePath);
+    }
+  });
+
   it("should declare the bundle as markdown in info.json", async () => {
     const { collection, document, fileOperation } =
       await buildDocumentWithAttachment();

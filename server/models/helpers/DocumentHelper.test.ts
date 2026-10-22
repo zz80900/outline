@@ -1,3 +1,4 @@
+import { DocumentConverter } from "@server/converters/DocumentConverter";
 import Revision from "@server/models/Revision";
 import { buildCollection, buildDocument } from "@server/test/factories";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
@@ -610,6 +611,68 @@ This is a [test paragraph](https://example.net)`,
   });
 
   describe("toMarkdown", () => {
+    it("should omit the title heading when includeTitle is false", async () => {
+      const document = await buildDocument({ title: "Example title" });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(result).not.toContain("# Example title");
+    });
+
+    it("should not include source frontmatter by default", async () => {
+      const document = await buildDocument({
+        sourceMetadata: { fileName: "report.docx" },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(result.startsWith("---")).toBe(false);
+    });
+
+    it("should prepend source metadata as YAML frontmatter", async () => {
+      const document = await buildDocument({
+        sourceMetadata: {
+          fileName: "report.docx",
+          createdByName: "Alice",
+          originalDocumentId: "doc-123",
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+        includeSourceMetadata: true,
+      });
+      expect(result.startsWith("---\n")).toBe(true);
+      expect(result).toContain("source:\n  fileName: report.docx");
+      expect(result).toContain("  createdByName: Alice");
+      expect(result).toContain("  originalDocumentId: doc-123");
+      expect(result).not.toContain("# Example");
+    });
+
+    it("should strip exported frontmatter when re-imported", async () => {
+      const document = await buildDocument({
+        sourceMetadata: { fileName: "report.docx" },
+      });
+      const exported = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+        includeSourceMetadata: true,
+      });
+      const imported = await DocumentConverter.convert(
+        exported,
+        "report.md",
+        "text/markdown"
+      );
+      expect(imported.text).not.toContain("source:");
+    });
+
+    it("should omit frontmatter when a document has no source metadata", async () => {
+      const document = await buildDocument({ sourceMetadata: null });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+        includeSourceMetadata: true,
+      });
+      expect(result.startsWith("---")).toBe(false);
+    });
+
     it("should preserve smart quotes rather than flattening them", async () => {
       const document = await buildDocument({
         content: {

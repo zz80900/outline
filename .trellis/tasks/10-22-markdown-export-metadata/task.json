@@ -3,7 +3,7 @@
   "name": "markdown-export-metadata",
   "title": "Markdown export title and metadata",
   "description": "Stop exporting the document title as an H1, export document metadata as YAML frontmatter, and render metadata in the frontend",
-  "status": "planning",
+  "status": "review",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "Implemented export and UI; server tests pending because PostgreSQL is unavailable in this environment.",
   "meta": {}
 }

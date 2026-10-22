@@ -95,10 +95,18 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
 
     const { attachments, document } = result;
 
+    // Markdown exports omit the duplicated H1 title and prepend source
+    // metadata; TextBundle keeps its existing text.md output.
+    const isMarkdown = format === FileOperationFormat.MarkdownZip;
+
     let text =
       format === FileOperationFormat.HTMLZip
         ? await DocumentHelper.toHTML(document, { centered: true })
-        : await DocumentHelper.toMarkdown(document, { commonMark: true });
+        : await DocumentHelper.toMarkdown(document, {
+            commonMark: true,
+            includeTitle: !isMarkdown,
+            includeSourceMetadata: isMarkdown,
+          });
 
     const isTextBundle = format === FileOperationFormat.TextBundleZip;
 

@@ -91,6 +91,8 @@ export default class Document extends ArchivableModel implements Searchable {
     createdByName?: string;
     /** The name of the file this document was imported from. */
     fileName?: string;
+    /** The ID of the original document when this document was duplicated. */
+    originalDocumentId?: string;
   };
 
   @computed
