@@ -9,6 +9,7 @@ export enum SettingsGroup {
   Account = "Account",
   Workspace = "Workspace",
   Integrations = "Integrations",
+  Developer = "Developer",
 }
 
 /** Stable identifiers for built-in settings items. */
@@ -20,7 +21,7 @@ export enum SettingsItemId {
   Details = "details",
   Authentication = "authentication",
   Security = "security",
-  Features = "features",
+  AI = "ai",
   Members = "users",
   Groups = "groups",
   Templates = "templates",

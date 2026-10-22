@@ -63,13 +63,13 @@ export interface UseSettingsConfigOptions {
   scope?: SettingsConfigScope;
 }
 
+const AI = lazy(() => import("~/scenes/Settings/AI"));
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
 const Applications = lazy(() => import("~/scenes/Settings/Applications"));
 const APIAndAccess = lazy(() => import("~/scenes/Settings/APIAndAccess"));
 const Authentication = lazy(() => import("~/scenes/Settings/Authentication"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
-const Features = lazy(() => import("~/scenes/Settings/Features"));
 const Groups = lazy(() => import("~/scenes/Settings/Groups"));
 const Import = lazy(() => import("~/scenes/Settings/Import"));
 const Integrations = lazy(() => import("~/scenes/Settings/Integrations"));
@@ -108,14 +108,16 @@ export default function useSettingsConfig(
   const scope = options.scope ?? SettingsConfigScope.Navigation;
 
   useEffect(() => {
-    void integrations.fetchAll();
+    void integrations.fetchAllIfNeeded();
   }, [integrations]);
 
   return useComputed(() => {
     const accountGroup = t(SettingsGroup.Account);
     const workspaceGroup = t(SettingsGroup.Workspace);
     const integrationsGroup = t(SettingsGroup.Integrations);
+    const developerGroup = t(SettingsGroup.Developer);
     const items: ConfigItem[] = [
+      // Account
       {
         id: SettingsItemId.Profile,
         name: t("Profile"),
@@ -158,11 +160,12 @@ export default function useSettingsConfig(
         enabled: true,
         group: accountGroup,
         groupId: SettingsGroup.Account,
-        icon: PadlockIcon,
+        icon: CodeIcon,
       },
+      // Workspace
       {
         id: SettingsItemId.Details,
-        name: t("Details"),
+        name: t("General"),
         path: settingsPathForMode(mode, SettingsItemId.Details),
         component: Details.Component,
         preload: Details.preload,
@@ -170,39 +173,6 @@ export default function useSettingsConfig(
         group: workspaceGroup,
         groupId: SettingsGroup.Workspace,
         icon: TeamIcon,
-      },
-      {
-        id: SettingsItemId.Authentication,
-        name: t("Authentication"),
-        path: settingsPathForMode(mode, SettingsItemId.Authentication),
-        component: Authentication.Component,
-        preload: Authentication.preload,
-        enabled: can.update,
-        group: workspaceGroup,
-        groupId: SettingsGroup.Workspace,
-        icon: PadlockIcon,
-      },
-      {
-        id: SettingsItemId.Security,
-        name: t("Security"),
-        path: settingsPathForMode(mode, SettingsItemId.Security),
-        component: Security.Component,
-        preload: Security.preload,
-        enabled: can.update,
-        group: workspaceGroup,
-        groupId: SettingsGroup.Workspace,
-        icon: ShieldIcon,
-      },
-      {
-        id: SettingsItemId.Features,
-        name: t("AI"),
-        path: settingsPathForMode(mode, SettingsItemId.Features),
-        component: Features.Component,
-        preload: Features.preload,
-        enabled: can.update,
-        group: workspaceGroup,
-        groupId: SettingsGroup.Workspace,
-        icon: SparklesIcon,
       },
       {
         id: SettingsItemId.Members,
@@ -225,6 +195,28 @@ export default function useSettingsConfig(
         group: workspaceGroup,
         groupId: SettingsGroup.Workspace,
         icon: GroupIcon,
+      },
+      {
+        id: SettingsItemId.Authentication,
+        name: t("Authentication"),
+        path: settingsPathForMode(mode, SettingsItemId.Authentication),
+        component: Authentication.Component,
+        preload: Authentication.preload,
+        enabled: can.update,
+        group: workspaceGroup,
+        groupId: SettingsGroup.Workspace,
+        icon: PadlockIcon,
+      },
+      {
+        id: SettingsItemId.Security,
+        name: t("Security"),
+        path: settingsPathForMode(mode, SettingsItemId.Security),
+        component: Security.Component,
+        preload: Security.preload,
+        enabled: can.update,
+        group: workspaceGroup,
+        groupId: SettingsGroup.Workspace,
+        icon: ShieldIcon,
       },
       {
         id: SettingsItemId.Templates,
@@ -261,30 +253,19 @@ export default function useSettingsConfig(
         icon: SmileyIcon,
       },
       {
-        id: SettingsItemId.ApiKeys,
-        name: t("API Keys"),
-        path: settingsPathForMode(mode, SettingsItemId.ApiKeys),
-        component: ApiKeys.Component,
-        preload: ApiKeys.preload,
-        enabled: can.listApiKeys,
+        id: SettingsItemId.AI,
+        name: t("AI"),
+        path: settingsPathForMode(mode, SettingsItemId.AI),
+        component: AI.Component,
+        preload: AI.preload,
+        enabled: can.update,
         group: workspaceGroup,
         groupId: SettingsGroup.Workspace,
-        icon: CodeIcon,
-      },
-      {
-        id: SettingsItemId.Applications,
-        name: t("Applications"),
-        path: settingsPathForMode(mode, SettingsItemId.Applications),
-        component: Applications.Component,
-        preload: Applications.preload,
-        enabled: can.listOAuthClients,
-        group: workspaceGroup,
-        groupId: SettingsGroup.Workspace,
-        icon: InternetIcon,
+        icon: SparklesIcon,
       },
       {
         id: SettingsItemId.Shares,
-        name: t("Shared Links"),
+        name: t("Shared links"),
         path: settingsPathForMode(mode, SettingsItemId.Shares),
         component: Shares.Component,
         preload: Shares.preload,
@@ -315,6 +296,7 @@ export default function useSettingsConfig(
         groupId: SettingsGroup.Workspace,
         icon: ExportIcon,
       },
+      // Integrations
       {
         id: SettingsItemId.Embeds,
         name: t("Embeds"),
@@ -339,6 +321,29 @@ export default function useSettingsConfig(
         group: integrationsGroup,
         groupId: SettingsGroup.Integrations,
         icon: PlusIcon,
+      },
+      // Developer
+      {
+        id: SettingsItemId.ApiKeys,
+        name: t("API keys"),
+        path: settingsPathForMode(mode, SettingsItemId.ApiKeys),
+        component: ApiKeys.Component,
+        preload: ApiKeys.preload,
+        enabled: can.listApiKeys,
+        group: developerGroup,
+        groupId: SettingsGroup.Developer,
+        icon: CodeIcon,
+      },
+      {
+        id: SettingsItemId.Applications,
+        name: t("Applications"),
+        path: settingsPathForMode(mode, SettingsItemId.Applications),
+        component: Applications.Component,
+        preload: Applications.preload,
+        enabled: can.listOAuthClients,
+        group: developerGroup,
+        groupId: SettingsGroup.Developer,
+        icon: InternetIcon,
       },
     ];
 

@@ -3,11 +3,12 @@ import { observer } from "mobx-react";
 import { BackIcon } from "outline-icons";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
+import { useLocationSelector } from "~/hooks/useLocationSelector";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { getSettingsMode } from "~/utils/routeHelpers";
@@ -24,8 +25,8 @@ function SettingsSidebar() {
   const { integrations } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
-  const location = useLocation();
-  const mode = getSettingsMode(location.pathname) ?? SettingsMode.Simplified;
+  const pathname = useLocationSelector((location) => location.pathname);
+  const mode = getSettingsMode(pathname) ?? SettingsMode.Simplified;
   const configs = useSettingsConfig({ mode });
 
   const groupedConfig = groupBy(
@@ -44,7 +45,7 @@ function SettingsSidebar() {
   return (
     <Sidebar canCollapse={false}>
       <SidebarButton
-        title={t("Return to App")}
+        title={t("Back to app")}
         image={<StyledBackIcon />}
         onClick={returnToApp}
       />
@@ -62,7 +63,7 @@ function SettingsSidebar() {
                     active={
                       item.id === SettingsItemId.Templates ||
                       item.id === SettingsItemId.Groups
-                        ? location.pathname.startsWith(item.path)
+                        ? pathname.startsWith(item.path)
                         : undefined
                     }
                     icon={<item.icon />}

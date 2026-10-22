@@ -42,7 +42,12 @@ function SettingsRoutes() {
         from={settingsPathForMode(mode, "members")}
         to={settingsPathForMode(mode, "users")}
       />
-      {/* TODO: Refactor these exceptions into config? */}
+      {/* Features was renamed to AI, redirect for backwards compatibility */}
+      <Redirect
+        exact
+        from={settingsPathForMode(mode, "features")}
+        to={settingsPathForMode(mode, "ai")}
+      />
       <Route
         exact
         path={settingsPathForMode(mode, "groups", ":id", "members")}

@@ -6,11 +6,11 @@ import type {
   ComponentProps,
   HTMLAttributes,
   ReactNode,
+  Ref,
   SyntheticEvent,
 } from "react";
 import {
   createContext,
-  forwardRef,
   useCallback,
   useContext,
   useEffect,
@@ -142,12 +142,16 @@ type ZoomablePannablePinchableProps = {
   panningDisabled: boolean;
   disabled: boolean;
   onClose?: () => void;
+  ref?: Ref<ReactZoomPanPinchRef>;
 };
 
-const ZoomablePannablePinchable = forwardRef<
-  ReactZoomPanPinchRef,
-  ZoomablePannablePinchableProps
->(({ children, panningDisabled, disabled, onClose }, ref) => {
+function ZoomablePannablePinchable({
+  children,
+  panningDisabled,
+  disabled,
+  onClose,
+  ref,
+}: ZoomablePannablePinchableProps) {
   const { isPanning, ...panningHandlers } = usePanning();
   const wrapperRef = useRef<ReactZoomPanPinchRef>(null);
   const scale = wrapperRef.current?.instance.transformState.scale ?? 1;
@@ -208,7 +212,7 @@ const ZoomablePannablePinchable = forwardRef<
       </TransformWrapper>
     </ZoomPanPinchContext.Provider>
   );
-});
+}
 
 function usePanning() {
   const [isPanning, setPanning] = useState(false);
@@ -785,7 +789,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
             animation={animation.current}
             $commentsOpen={canShowComments && commentsOpen}
           >
-            <Tooltip content={t("Zoom in")} placement="bottom">
+            <Tooltip content={t("Zoom in")} side="bottom">
               <ActionButton
                 tabIndex={-1}
                 disabled={
@@ -804,7 +808,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
                 neutral
               />
             </Tooltip>
-            <Tooltip content={t("Zoom out")} placement="bottom">
+            <Tooltip content={t("Zoom out")} side="bottom">
               <ActionButton
                 tabIndex={-1}
                 disabled={
@@ -826,7 +830,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
               />
             </Tooltip>
             <Separator />
-            <Tooltip content={t("Copy link")} placement="bottom">
+            <Tooltip content={t("Copy link")} side="bottom">
               <CopyToClipboard text={imgRef.current?.src ?? ""}>
                 <ActionButton
                   tabIndex={-1}
@@ -839,7 +843,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
                 />
               </CopyToClipboard>
             </Tooltip>
-            <Tooltip content={t("Download")} placement="bottom">
+            <Tooltip content={t("Download")} side="bottom">
               <ActionButton
                 tabIndex={-1}
                 disabled={status.image === ImageStatus.ERROR}
@@ -854,7 +858,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
             {activeImage.source === ImageSource.DiagramsNet &&
               !Desktop.isElectron() &&
               !readOnly && (
-                <Tooltip content={t("Edit diagram")} placement="bottom">
+                <Tooltip content={t("Edit diagram")} side="bottom">
                   <ActionButton
                     tabIndex={-1}
                     disabled={status.image === ImageStatus.ERROR}
@@ -868,7 +872,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
                 </Tooltip>
               )}
             {canShowComments && (
-              <Tooltip content={t("Comments")} placement="bottom">
+              <Tooltip content={t("Comments")} side="bottom">
                 <ActionButton
                   tabIndex={-1}
                   onClick={() => setCommentsOpen((open) => !open)}
@@ -884,7 +888,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
           </Actions>
           <CloseAction animation={animation.current}>
             <Dialog.Close asChild>
-              <Tooltip content={t("Close")} shortcut="Esc" placement="bottom">
+              <Tooltip content={t("Close")} shortcut="Esc" side="bottom">
                 <ActionButton
                   tabIndex={-1}
                   onClick={close}
@@ -993,27 +997,26 @@ type ImageProps = {
   onMinZoom: () => void;
   onZoom: () => void;
   onMaxZoom: () => void;
+  ref?: Ref<HTMLImageElement>;
 };
 
-const Image = forwardRef<HTMLImageElement, ImageProps>(function Image_(
-  {
-    src,
-    alt,
-    onLoading,
-    onLoad,
-    onError,
-    onSwipeRight,
-    onSwipeLeft,
-    onSwipeUp,
-    onSwipeDown,
-    status,
-    animation,
-    onMinZoom,
-    onZoom,
-    onMaxZoom,
-  }: ImageProps,
-  ref
-) {
+function Image({
+  src,
+  alt,
+  onLoading,
+  onLoad,
+  onError,
+  onSwipeRight,
+  onSwipeLeft,
+  onSwipeUp,
+  onSwipeDown,
+  status,
+  animation,
+  onMinZoom,
+  onZoom,
+  onMaxZoom,
+  ref,
+}: ImageProps) {
   const { t } = useTranslation();
 
   const swipeHandlers = useSwipe({
@@ -1091,7 +1094,7 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function Image_(
       </Figure>
     </>
   );
-});
+}
 
 const Figure = styled("figure")`
   width: 100%;
