@@ -391,6 +391,29 @@ describe("list_documents", () => {
 });
 
 describe("create_document", () => {
+  it("imports source metadata from markdown frontmatter", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "Imported",
+      text: "---\nsource:\n  fileName: report.docx\n  createdByName: Alice\n---\n\nBody",
+      collectionId: collection.id,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.success).toBe(true);
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.sourceMetadata).toEqual({
+      fileName: "report.docx",
+      createdByName: "Alice",
+    });
+    expect(document.text).not.toContain("report.docx");
+  });
+
   it("creates in the personal collection", async () => {
     const { user, accessToken } = await buildOAuthUser();
     user.team.setPreference(TeamPreference.PersonalDocs, true);

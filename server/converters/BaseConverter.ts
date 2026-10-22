@@ -1,4 +1,7 @@
-import yaml from "js-yaml";
+import {
+  parseFrontmatter as parseMarkdownFrontmatter,
+  stripFrontmatter as stripMarkdownFrontmatter,
+} from "@server/utils/frontmatter";
 
 /**
  * Base class for the individual file format converters, holding the handling
@@ -25,20 +28,7 @@ export abstract class BaseConverter {
   protected static parseFrontmatter(
     content: string
   ): Record<string, unknown> | undefined {
-    const match = content.match(this.frontmatterRegex);
-    if (!match) {
-      return undefined;
-    }
-
-    try {
-      const data: unknown = yaml.load(match[1]);
-      if (data && typeof data === "object" && !Array.isArray(data)) {
-        return data as Record<string, unknown>;
-      }
-      return undefined;
-    } catch {
-      return undefined;
-    }
+    return parseMarkdownFrontmatter(content);
   }
 
   /**
@@ -49,20 +39,6 @@ export abstract class BaseConverter {
    * @returns The markdown content without frontmatter.
    */
   protected static stripFrontmatter(content: string): string {
-    const match = content.match(this.frontmatterRegex);
-    if (!match) {
-      return content;
-    }
-
-    try {
-      yaml.load(match[1]);
-    } catch {
-      return content;
-    }
-
-    return content.slice(match[0].length);
+    return stripMarkdownFrontmatter(content);
   }
-
-  // Frontmatter must start at the beginning of the document
-  private static readonly frontmatterRegex = /^---\n([\s\S]*?)\n---(?:\n|$)/;
 }

@@ -15,7 +15,16 @@
 - [x] 2.3 Render source file, import type, imported date, original creator, and original document ID when present; use `t()` labels and theme tokens.
 - [x] 2.4 Insert the component in `app/scenes/Document/components/Document.tsx` after `<Notices />` in the non-revision branch; keep it out of the public share view.
 
-## 3. Tests and verification
+## 4. Import source metadata
+
+- [x] 4.1 Add `server/utils/frontmatter.ts` with `parseFrontmatter`, `stripFrontmatter`, and `parseSourceMetadata`; delegate `BaseConverter` helpers to it.
+- [x] 4.2 Add `sourceMetadata` to `DocumentConverter.ConvertResult` and forward it from `documentImporter`.
+- [x] 4.3 Merge frontmatter metadata with caller metadata in `DocumentImportTask` (web import and OpenAPI `documents.import`).
+- [x] 4.4 Parse and strip frontmatter in OpenAPI `documents.create` and pass `sourceMetadata` to `documentCreator`.
+- [x] 4.5 Parse and strip frontmatter in MCP `create_document` (Markdown branch) and pass `sourceMetadata`.
+- [x] 4.6 Add tests for the utility, converter extraction, web import, OpenAPI create, and MCP create. Utility and converter tests pass; DB-backed path tests are written but require PostgreSQL.
+
+## 5. Tests and verification
 
 - [x] 3.1 Add `DocumentHelper.toMarkdown` tests for title omission, frontmatter present/absent, and unchanged body.
 - [x] 3.2 Update `ExportMarkdownZipTask.test.ts` for the new `.md` output and add a TextBundle regression assertion.

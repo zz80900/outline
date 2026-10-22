@@ -21,6 +21,6 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "Implemented export and UI; server tests pending because PostgreSQL is unavailable in this environment.",
+  "notes": "Export + frontend block implemented. Import now parses frontmatter source metadata for web import, OpenAPI import/create, and MCP create. DB-backed tests written but not run (PostgreSQL unavailable).",
   "meta": {}
 }

@@ -1,6 +1,6 @@
 import mime from "mime-types";
 import { truncate } from "es-toolkit/compat";
-import type { ProsemirrorData } from "@shared/types";
+import type { ProsemirrorData, SourceMetadata } from "@shared/types";
 import { DocumentValidation } from "@shared/validations";
 import { serializer } from "@server/editor";
 import { traceFunction } from "@server/logging/tracing";
@@ -23,6 +23,8 @@ type ImportResult = {
   text: string;
   title: string;
   state: Buffer;
+  /** Source metadata parsed from frontmatter, when present. */
+  sourceMetadata?: SourceMetadata;
 };
 
 /**
@@ -78,6 +80,7 @@ async function documentImporter({
     doc,
     title: extractedTitle,
     icon,
+    sourceMetadata,
   } = await DocumentConverter.convert(content, fileName, mimeType);
 
   // Use extracted title or fall back to filename
@@ -101,7 +104,7 @@ async function documentImporter({
   title = truncate(title, { length: DocumentValidation.maxTitleLength });
   const state = convertToState(processedDoc.toJSON() as ProsemirrorData, title);
 
-  return { text, state, title, icon };
+  return { text, state, title, icon, sourceMetadata };
 }
 
 export default traceFunction({

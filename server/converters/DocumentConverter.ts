@@ -1,10 +1,12 @@
 import type { Node } from "prosemirror-model";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
+import type { SourceMetadata } from "@shared/types";
 import { splitLeadingEmoji } from "@shared/utils/parseTitle";
 import { schema, serializer } from "@server/editor";
 import { FileImportError } from "@server/errors";
 import { trace } from "@server/logging/tracing";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { parseSourceMetadata } from "@server/utils/frontmatter";
 import { BaseConverter } from "./BaseConverter";
 import { HtmlPreprocessor } from "./HtmlPreprocessor";
 
@@ -17,6 +19,8 @@ export interface ConvertResult {
   title: string;
   /** The extracted emoji/icon from start of document. */
   icon?: string;
+  /** Source metadata parsed from frontmatter, when present. */
+  sourceMetadata?: SourceMetadata;
 }
 
 /**
@@ -51,6 +55,7 @@ export class DocumentConverter extends BaseConverter {
     let title = "";
     let icon: string | undefined;
     let frontmatterTitle: string | undefined;
+    let sourceMetadata: SourceMetadata | undefined;
 
     // Route to appropriate conversion method
     const html = await this.convertToHtml(content, fileName, mimeType);
@@ -65,6 +70,7 @@ export class DocumentConverter extends BaseConverter {
           : content.subarray(0, 4).toString("utf8") === "---\n";
       if (hasFrontmatterPrefix) {
         const frontmatter = this.parseFrontmatter(this.bufferToString(content));
+        sourceMetadata = parseSourceMetadata(frontmatter);
         if (
           typeof frontmatter?.title === "string" &&
           frontmatter.title.trim()
@@ -123,6 +129,7 @@ export class DocumentConverter extends BaseConverter {
       doc,
       title,
       icon,
+      sourceMetadata,
     };
   }
 

@@ -61,6 +61,26 @@ The branch is shared by `MarkdownZip` and `TextBundleZip` (`TextBundleHelper.tex
 
 File naming in the archive is unaffected; it already uses the document title.
 
+## Import Changes
+
+### Shared frontmatter utility
+
+Add `server/utils/frontmatter.ts`:
+
+- `parseFrontmatter(content)` — YAML at the start of the document, same regex rules as `BaseConverter`.
+- `stripFrontmatter(content)` — remove a valid frontmatter block from the body.
+- `parseSourceMetadata(frontmatter)` — read the `source` object, keep whitelisted keys with string values, return `undefined` when absent or empty.
+
+`BaseConverter` delegates its existing protected helpers to this utility so parsing rules stay in one place.
+
+### Creation paths
+
+- `DocumentConverter.ConvertResult` gains `sourceMetadata?: SourceMetadata`, parsed from the frontmatter it already reads for the title.
+- `documentImporter` forwards `sourceMetadata` from the conversion result.
+- `DocumentImportTask` merges `{ ...callerSourceMetadata, ...convertedSourceMetadata }`, so frontmatter values win and caller file name/mime type fill gaps. Covers web import and OpenAPI `documents.import`.
+- OpenAPI `documents.create` and MCP `create_document` (Markdown branch) call `parseFrontmatter` / `stripFrontmatter` / `parseSourceMetadata` on the `text` input, create the document from the stripped body, and pass the parsed metadata to `documentCreator`.
+- HTML paths are unchanged.
+
 ## Frontend Rendering
 
 New component `app/scenes/Document/components/DocumentSourceMetadata.tsx`:

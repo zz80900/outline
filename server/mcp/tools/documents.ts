@@ -41,6 +41,11 @@ import { ValidationError } from "@server/errors";
 import { TextEditMode } from "@shared/types";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
+import {
+  parseFrontmatter,
+  parseSourceMetadata,
+  stripFrontmatter,
+} from "@server/utils/frontmatter";
 
 /**
  * Presents a document for a tool response. Adds MCP-specific fields
@@ -469,9 +474,29 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   ctx.state.transaction = transaction;
                   ctx.context.transaction = transaction;
 
+                  const frontmatter = input.text
+                    ? parseFrontmatter(input.text)
+                    : undefined;
+                  const sourceMetadata = parseSourceMetadata(frontmatter);
+                  const body = input.text
+                    ? stripFrontmatter(input.text)
+                    : input.text;
+                  const mergedSourceMetadata =
+                    sourceMetadata || input.sourceFileName
+                      ? {
+                          ...(input.sourceFileName
+                            ? {
+                                fileName: input.sourceFileName,
+                                mimeType: "text/markdown",
+                              }
+                            : {}),
+                          ...sourceMetadata,
+                        }
+                      : undefined;
+
                   return documentCreator(ctx, {
                     title: input.title,
-                    text: input.text,
+                    text: body,
                     icon: input.icon,
                     color: input.color,
                     parentDocumentId,
@@ -479,12 +504,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     collectionId: collection?.id,
                     template,
                     fullWidth: input.fullWidth,
-                    sourceMetadata: input.sourceFileName
-                      ? {
-                          fileName: input.sourceFileName,
-                          mimeType: "text/markdown",
-                        }
-                      : undefined,
+                    sourceMetadata: mergedSourceMetadata,
                   });
                 });
 

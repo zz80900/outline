@@ -6244,6 +6244,27 @@ describe("#documents.import", () => {
 });
 
 describe("#documents.create", () => {
+  it("should create a document from markdown with source metadata", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Imported",
+        text: "---\nsource:\n  fileName: report.docx\n  createdByName: Alice\n---\n\nBody",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const document = await Document.findByPk(body.data.id, {
+      rejectOnEmpty: true,
+    });
+    expect(document.sourceMetadata).toEqual({
+      fileName: "report.docx",
+      createdByName: "Alice",
+    });
+    expect(document.text).not.toContain("report.docx");
+  });
+
   it("should create the personal collection for the personal collectionId", async () => {
     const team = await buildTeam();
     team.setPreference(TeamPreference.PersonalDocs, true);

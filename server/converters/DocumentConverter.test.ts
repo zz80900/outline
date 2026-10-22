@@ -410,6 +410,40 @@ Content after frontmatter`;
         expect(result.text).toContain("# My Title");
       });
 
+      it("should extract source metadata from frontmatter", async () => {
+        const md = `---
+source:
+  fileName: report.docx
+  createdByName: Alice
+  trial: true
+  ignored: value
+---
+
+Body`;
+
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown"
+        );
+
+        expect(result.sourceMetadata).toEqual({
+          fileName: "report.docx",
+          createdByName: "Alice",
+        });
+        expect(result.text).not.toContain("report.docx");
+      });
+
+      it("should not set source metadata without a source block", async () => {
+        const result = await DocumentConverter.convert(
+          "---\ntitle: Test\n---\n\nBody",
+          "test.md",
+          "text/markdown"
+        );
+
+        expect(result.sourceMetadata).toBeUndefined();
+      });
+
       it("should extract title from frontmatter", async () => {
         const md = `---
 type: Runbook

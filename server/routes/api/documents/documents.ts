@@ -33,6 +33,11 @@ import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
 import env from "@server/env";
 import {
+  parseFrontmatter,
+  parseSourceMetadata,
+  stripFrontmatter,
+} from "@server/utils/frontmatter";
+import {
   InvalidRequestError,
   AuthenticationError,
   ValidationError,
@@ -1877,8 +1882,14 @@ router.post(
       authorize(user, "read", template);
     }
 
+    // Source metadata in frontmatter is applied to the document and removed
+    // from the body before the content is stored.
+    const frontmatter = text ? parseFrontmatter(text) : undefined;
+    const sourceMetadata = parseSourceMetadata(frontmatter);
+    const body = text ? stripFrontmatter(text) : text;
+
     // Pre-process text to convert bare embed URLs to markdown link format
-    const processedText = text ? convertBareUrlsToEmbedMarkdown(text) : text;
+    const processedText = body ? convertBareUrlsToEmbedMarkdown(body) : body;
 
     const document = await documentCreator(ctx, {
       id,
@@ -1901,6 +1912,7 @@ router.post(
       fullWidth,
       preferences,
       editorVersion,
+      sourceMetadata,
     });
 
     if (collection) {

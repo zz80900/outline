@@ -52,6 +52,18 @@ Export Markdown without duplicating the document title as an H1, include the doc
 - Use `t("...")` for labels; no manual translation file edits.
 - The block is visible to users who can read the document and is not editable.
 
+### 4. Import source metadata from frontmatter
+
+- When incoming Markdown starts with a valid YAML frontmatter block containing a `source` object, parse it into `SourceMetadata` (whitelisted keys, string values).
+- The `source` block is removed from the document body.
+- Applies to every creation path:
+  - Web file import (`DocumentImportTask` via `documentImporter` / `DocumentConverter`).
+  - OpenAPI `documents.import` (same `DocumentImportTask` path).
+  - OpenAPI `documents.create` with Markdown `text`.
+  - MCP `create_document` with Markdown `text`.
+- Frontmatter `source` values take precedence over the file name and mime type supplied by the caller; missing fields fall back to caller-provided values.
+- Frontmatter without a `source` object keeps the current behavior (title handling only).
+
 ## Acceptance Criteria
 
 - [ ] Single-document MarkdownZip export produces a `.md` file with no `# <title>` heading.
@@ -61,7 +73,10 @@ Export Markdown without duplicating the document title as an H1, include the doc
 - [ ] Re-importing an exported file strips the frontmatter from the body.
 - [ ] TextBundle and HTML export output is unchanged.
 - [ ] The editor shows a read-only source metadata block when metadata exists and hides it otherwise.
-- [ ] Tests cover export with/without metadata, title omission, round-trip import, and the frontend block.
+- [ ] Importing an exported file restores `sourceMetadata` on the created document.
+- [ ] Web import, OpenAPI `documents.import`, OpenAPI `documents.create`, and MCP `create_document` all persist frontmatter `source` metadata.
+- [ ] HTML imports and frontmatter without a `source` object keep their current behavior.
+- [ ] Tests cover export with/without metadata, title omission, round-trip import, each import path, and the frontend block.
 - [ ] `yarn lint`, `yarn tsc`, and targeted Vitest files pass.
 
 ## Out of Scope

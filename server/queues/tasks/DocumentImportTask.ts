@@ -94,7 +94,13 @@ export default class DocumentImportTask extends BaseTask<Props> {
       // Run document conversion and image downloading outside a transaction
       const ctx = createContext({ user, authType, ip });
 
-      const { text, state, title, icon } = await documentImporter({
+      const {
+        text,
+        state,
+        title,
+        icon,
+        sourceMetadata: convertedSourceMetadata,
+      } = await documentImporter({
         user,
         fileName: sourceMetadata.fileName,
         mimeType: sourceMetadata.mimeType,
@@ -111,7 +117,10 @@ export default class DocumentImportTask extends BaseTask<Props> {
             transaction,
           }),
           {
-            sourceMetadata,
+            sourceMetadata: {
+              ...sourceMetadata,
+              ...convertedSourceMetadata,
+            },
             title: attributes?.title ?? title,
             icon: attributes?.icon ?? icon,
             color: attributes?.color,
