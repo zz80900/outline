@@ -42,7 +42,6 @@ import {
 import { useDocumentSave } from "../hooks/useDocumentSave";
 import Container from "./Container";
 import Contents from "./Contents";
-import DocumentSourceMetadata from "./DocumentSourceMetadata";
 import Editor from "./Editor";
 import Header from "./Header";
 import Notices, { DocumentNotice } from "./Notices";
@@ -454,7 +453,6 @@ function DocumentScene({
                 ) : (
                   <>
                     <Notices document={document} readOnly={readOnly} />
-                    <DocumentSourceMetadata document={document} />
 
                     {showContents && (
                       <PrintContentsContainer>
