@@ -30,5 +30,5 @@
 - [x] 3.2 Update `ExportMarkdownZipTask.test.ts` for the new `.md` output and add a TextBundle regression assertion.
 - [x] 3.3 Add a round-trip test importing exported Markdown through `DocumentConverter` and asserting the frontmatter is stripped.
 - [x] 3.4 Add `DocumentSourceMetadata` component tests for both render and no-render cases.
-- [x] 3.5 Run `yarn tsc`, lint, and the component test. Server tests are pending: PostgreSQL is not running in this environment.
+- [x] 3.5 Run `yarn tsc`, lint, component tests, and server tests against PostgreSQL. Export/import suites pass; 3 TextBundle path-separator failures on Windows and 3 PDF fixture failures are pre-existing and unrelated to this change.
 - [x] 3.6 GitNexus impact/detect_changes unavailable (the `outline` repo is not indexed in the running MCP server); caller impact was reviewed with text search instead.

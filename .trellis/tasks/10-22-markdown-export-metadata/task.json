@@ -3,7 +3,7 @@
   "name": "markdown-export-metadata",
   "title": "Markdown export title and metadata",
   "description": "Stop exporting the document title as an H1, export document metadata as YAML frontmatter, and render metadata in the frontend",
-  "status": "review",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "xiejincheng",
   "assignee": "xiejincheng",
   "createdAt": "2026-10-22",
-  "completedAt": null,
+  "completedAt": "2026-10-22",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "Export + frontend block implemented. Import now parses frontmatter source metadata for web import, OpenAPI import/create, and MCP create. DB-backed tests written but not run (PostgreSQL unavailable).",
+  "notes": "Export omits the title H1 and writes source frontmatter; frontend renders a read-only metadata block; web import, OpenAPI import/create, and MCP create restore sourceMetadata. Verified against PostgreSQL (WSL container): export/import/API/MCP/component tests pass. Pre-existing Windows TextBundle and PDF fixture failures remain unchanged.",
   "meta": {}
 }
