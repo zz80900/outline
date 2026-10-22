@@ -1,0 +1,32 @@
+{
+  "id": "add-hidden-super-admin",
+  "name": "add-hidden-super-admin",
+  "title": "Add hidden super admin",
+  "description": "Server-configured hidden super-administrator identity with unrestricted workspace read/download and suppressed view/export records",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "xiejincheng",
+  "assignee": "xiejincheng",
+  "createdAt": "2026-10-22",
+  "completedAt": "2026-10-22",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    ".trellis/tasks/10-22-add-hidden-super-admin/research/spec-delta.md"
+  ],
+  "notes": "",
+  "meta": {
+    "source": "openspec",
+    "originalPath": "openspec/changes/add-hidden-super-admin",
+    "originalCreatedAt": "2026-07-29"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "add-simplified-settings-view",
+  "name": "add-simplified-settings-view",
+  "title": "Add simplified settings view",
+  "description": "Simplified and complete settings navigation namespaces with a user-facing MCP connection page",
+  "status": "completed",
+  "dev_type": "feature",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "xiejincheng",
+  "assignee": "xiejincheng",
+  "createdAt": "2026-07-21",
+  "completedAt": "2026-07-21",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    ".trellis/spec/frontend/features/settings-navigation-modes.md",
+    ".trellis/spec/frontend/features/mcp-connection-settings.md"
+  ],
+  "notes": "Archived OpenSpec change migrated to Trellis.",
+  "meta": {
+    "source": "openspec",
+    "originalPath": "openspec/changes/archive/2026-07-21-add-simplified-settings-view",
+    "originalCreatedAt": "2026-07-21"
+  }
+}
