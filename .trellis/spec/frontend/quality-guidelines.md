@@ -1,51 +1,82 @@
-# Quality Guidelines
+# Frontend Quality Guidelines
 
-> Code quality standards for frontend development.
-
----
-
-## Overview
-
-<!--
-Document your project's quality standards here.
-
-Questions to answer:
-- What patterns are forbidden?
-- What linting rules do you enforce?
-- What are your testing requirements?
-- What code review standards apply?
--->
-
-(To be filled by the team)
+> Linting, formatting, testing, accessibility, and i18n for `app/`.
 
 ---
 
-## Forbidden Patterns
+## Toolchain
 
-<!-- Patterns that should never be used and why -->
+| Task | Command |
+| --- | --- |
+| Lint | `yarn lint` (Oxlint) |
+| Format | `yarn format` (oxfmt) |
+| Type check | `yarn tsc` |
+| App tests | `yarn test path/to/file.test.tsx` |
 
-(To be filled by the team)
-
----
-
-## Required Patterns
-
-<!-- Patterns that must always be used -->
-
-(To be filled by the team)
+`oxfmt` uses `printWidth: 80`, `trailingComma: "es5"`. Husky runs `lint-staged` on commit.
 
 ---
 
-## Testing Requirements
+## Tests
 
-<!-- What level of testing is expected -->
+- Vitest with the `app` project (`jsdom`, URL `http://localhost`).
+- Colocate tests next to the implementation; no new test directories.
+- React 19: render with `createRoot` from `react-dom/client` and `act` from `react`. `ReactDOM.render` and `react-dom/test-utils` no longer exist.
+- Unmount in `afterEach` inside `act`, then remove the container.
+- Mock heavy children (`Scene`, `Tooltip`, `Input`, `NudeButton`) rather than React itself.
 
-(To be filled by the team)
+Reference: `app/scenes/Settings/MCP.test.tsx`, `app/hooks/useSettingsPath.test.tsx`, `app/utils/settings.test.ts`.
+
+```tsx
+let container: HTMLDivElement;
+let root: Root;
+
+beforeEach(() => {
+  container = document.createElement("div");
+  document.body.appendChild(container);
+  root = createRoot(container);
+});
+
+afterEach(() => {
+  act(() => {
+    root.unmount();
+  });
+  container.remove();
+});
+```
 
 ---
 
-## Code Review Checklist
+## Accessibility
 
-<!-- What reviewers should check -->
+- Semantic HTML first; add ARIA only when semantics are insufficient.
+- Icon-only controls need `aria-label`.
+- Support keyboard interaction and visible focus.
+- Forms associate labels with inputs via `htmlFor`/`id`.
 
-(To be filled by the team)
+---
+
+## Internationalization
+
+- Wrap user-facing strings in `t("...")` from `react-i18next`; use `<Trans>` for embedded markup.
+- Do not edit `shared/i18n/locales/*/translation.json` by hand; keys are extracted by `yarn build:i18n`.
+- Keep the English source string as the key.
+
+---
+
+## Performance
+
+- Lazy-load routes and heavy scenes with `lazyWithRetry`.
+- Keep props stable for `observer`/memoized rows.
+- Avoid subscribing list rows to whole-store computed lists.
+- Use `useComputed` for narrow derivations.
+
+---
+
+## Review Checklist
+
+- `yarn lint`, `yarn format`, `yarn tsc` clean for changed files.
+- New behavior covered by a collocated test; React 19 APIs only.
+- No `any`, no `ReactDOM.render`, no direct translation-file edits.
+- Interactive elements are keyboard accessible and labeled.
+- Changed shared symbols passed GitNexus impact analysis.
