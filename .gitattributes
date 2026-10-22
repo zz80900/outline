@@ -7,3 +7,7 @@
 # picking either side (task state lives in task.json, not index.md). See
 # .trellis/spec/cli/backend/directory-structure.md for details.
 .trellis/workspace/*/journal-*.md merge=union
+
+# Deployment scripts run inside Linux containers and WSL; CRLF breaks bash
+# option parsing (`set -euo pipefail\r`).
+deploy/*.sh text eol=lf
