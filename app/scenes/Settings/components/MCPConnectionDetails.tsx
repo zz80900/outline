@@ -49,7 +49,7 @@ export const MCPConnectionDetails = React.memo(function MCPConnectionDetails() {
         margin={0}
         spellCheck={false}
       >
-        <Tooltip content={t("Copy URL")} placement="top">
+        <Tooltip content={t("Copy URL")}>
           <CopyToClipboard text={mcpEndpoint} onCopy={handleCopied}>
             <NudeButton
               type="button"

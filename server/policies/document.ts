@@ -26,8 +26,16 @@ allow(User, "createDocument", Team, (actor, document) =>
   )
 );
 
-allow(User, "read", Document, (actor, document) =>
-  and(
+allow(User, "read", Document, (actor, document) => {
+  if (!document || actor.teamId !== document.teamId) {
+    return false;
+  }
+
+  if (actor.isSuperAdmin) {
+    return true;
+  }
+
+  return and(
     isTeamModel(actor, document),
     or(
       includesMembership(document, [
@@ -38,8 +46,8 @@ allow(User, "read", Document, (actor, document) =>
       and(!!document?.isDraft, actor.id === document?.createdById),
       can(actor, "readDocument", document?.collection)
     )
-  )
-);
+  );
+});
 
 allow(User, ["listRevisions", "listViews"], Document, (actor, document) =>
   or(
@@ -48,15 +56,19 @@ allow(User, ["listRevisions", "listViews"], Document, (actor, document) =>
   )
 );
 
-allow(User, "download", Document, (actor, document) =>
-  and(
+allow(User, "download", Document, (actor, document) => {
+  if (actor.isSuperAdmin && document && actor.teamId === document.teamId) {
+    return true;
+  }
+
+  return and(
     can(actor, "read", document),
     or(
       and(!actor.isGuest, !actor.isViewer),
       !!actor.team.getPreference(TeamPreference.ViewersCanExport)
     )
-  )
-);
+  );
+});
 
 allow(User, "comment", Document, (actor, document) => {
   const commenting = actor.team.getPreference(TeamPreference.Commenting);

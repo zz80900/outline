@@ -53,6 +53,9 @@ allow(User, "read", Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) {
     return false;
   }
+  if (user.isSuperAdmin) {
+    return true;
+  }
   if (collection.isPersonal) {
     return isCollectionOwner(user, collection);
   }
@@ -104,6 +107,9 @@ allow(
       return false;
     }
 
+    if (user.isSuperAdmin) {
+      return true;
+    }
     if (collection.isPersonal) {
       return isCollectionOwner(user, collection);
     }

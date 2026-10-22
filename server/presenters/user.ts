@@ -41,7 +41,7 @@ export default function presentUser(
     name: user.name,
     avatarUrl: user.avatarUrl,
     color: user.color,
-    role: user.role,
+    role: user.effectiveRole,
     isSuspended: user.isSuspended,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,

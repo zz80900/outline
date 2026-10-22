@@ -290,7 +290,10 @@ async function validateAuthentication(
     });
   }
 
-  if (options.role && UserRoleHelper.isRoleLower(user.role, options.role)) {
+  if (
+    options.role &&
+    UserRoleHelper.isRoleLower(user.effectiveRole, options.role)
+  ) {
     throw AuthorizationError(`${capitalize(options.role)} role required`);
   }
 

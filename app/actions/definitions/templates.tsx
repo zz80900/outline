@@ -65,7 +65,8 @@ export const manageTemplates = createInternalLinkAction({
   icon: <SettingsIcon />,
   visible: ({ currentTeamId, stores }) =>
     !!stores.policies.abilities(currentTeamId!).readTemplate,
-  to: settingsPath("templates"),
+  to: ({ location }) =>
+    settingsPathFromLocation(location.pathname, "templates"),
 });
 
 export const deleteTemplate = dialogActionFactory({

@@ -12,6 +12,7 @@ import {
   IsNumber,
   IsIn,
   IsBoolean,
+  IsEmail,
   Min,
 } from "class-validator";
 import { uniq } from "es-toolkit/compat";
@@ -28,6 +29,21 @@ import {
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
 import { Public, PublicEnvironmentRegister } from "./utils/decorators/Public";
+
+/**
+ * Parses a comma-separated list of email addresses for identity matching.
+ *
+ * @param value comma-separated email addresses.
+ * @returns normalized and deduplicated email addresses.
+ */
+export function parseEmailList(value?: string): string[] {
+  return uniq(
+    (value ?? "")
+      .split(",")
+      .map((email) => email.trim().toLowerCase())
+      .filter((email) => email.length > 0)
+  );
+}
 
 export class Environment {
   constructor() {
@@ -349,6 +365,13 @@ export class Environment {
   @Public
   @IsIn(languages)
   public DEFAULT_LANGUAGE = environment.DEFAULT_LANGUAGE ?? "en_US";
+
+  /**
+   * Email addresses that receive server-side super-administrator privileges.
+   * This value is never exposed to the Web app.
+   */
+  @IsEmail({}, { each: true })
+  public SUPER_ADMIN_EMAILS = parseEmailList(environment.SUPER_ADMIN_EMAILS);
 
   /**
    * A comma list of which services should be enabled on this instance – defaults to all.

@@ -805,7 +805,11 @@ router.post(
 
     // Admins can restore any archived collection, including private ones they
     // are not a member of, so they must be able to see them listed.
-    if (!user.isAdmin || !(includeListOnly || includeArchived)) {
+    // Super-admins can list every collection in the workspace.
+    if (
+      !user.isSuperAdmin &&
+      (!user.isAdmin || !(includeListOnly || includeArchived))
+    ) {
       where[Op.and].push({ id: collectionIds });
     } else {
       where[Op.and].push({

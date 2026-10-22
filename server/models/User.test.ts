@@ -2,6 +2,7 @@ import { faker } from "@faker-js/faker";
 import { errToString } from "@shared/utils/error";
 import { CollectionPermission, UserRole } from "@shared/types";
 import { createContext } from "@server/context";
+import env from "@server/env";
 import { Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import {
@@ -25,6 +26,51 @@ afterAll(() => {
 });
 
 describe("user model", () => {
+  describe("effective role", () => {
+    const originalEmails = env.SUPER_ADMIN_EMAILS;
+
+    afterEach(() => {
+      env.SUPER_ADMIN_EMAILS = originalEmails;
+    });
+
+    it("treats a configured email as an administrator", () => {
+      env.SUPER_ADMIN_EMAILS = ["admin@example.com"];
+      const user = User.build({
+        email: "Admin@Example.com",
+        role: UserRole.Guest,
+      });
+
+      expect(user.isSuperAdmin).toBe(true);
+      expect(user.effectiveRole).toBe(UserRole.Admin);
+      expect(user.isAdmin).toBe(true);
+      expect(user.isMember).toBe(false);
+      expect(user.isViewer).toBe(false);
+      expect(user.isGuest).toBe(false);
+      expect(user.role).toBe(UserRole.Guest);
+    });
+
+    it("keeps the persisted role for a non-matching email", () => {
+      env.SUPER_ADMIN_EMAILS = ["admin@example.com"];
+      const user = User.build({
+        email: "member@example.com",
+        role: UserRole.Viewer,
+      });
+
+      expect(user.isSuperAdmin).toBe(false);
+      expect(user.effectiveRole).toBe(UserRole.Viewer);
+      expect(user.isViewer).toBe(true);
+      expect(user.isAdmin).toBe(false);
+    });
+
+    it("does not elevate a user without an email", () => {
+      env.SUPER_ADMIN_EMAILS = ["admin@example.com"];
+      const user = User.build({ email: null, role: UserRole.Member });
+
+      expect(user.isSuperAdmin).toBe(false);
+      expect(user.effectiveRole).toBe(UserRole.Member);
+    });
+  });
+
   describe("createWithCtx", () => {
     it("should create an event with the new user as both actorId and userId", async () => {
       const team = await buildTeam();

@@ -24,10 +24,32 @@ export default class CleanupExpiredFileOperationsTask extends CronTask {
       },
       limit,
     });
-    await Promise.all(
-      fileOperations.map((fileOperation) => fileOperation.expire())
+    const ephemeralOps: FileOperation[] = [];
+    const normalOps: FileOperation[] = [];
+
+    for (const fo of fileOperations) {
+      if (fo.options?.ephemeral) {
+        ephemeralOps.push(fo);
+      } else {
+        normalOps.push(fo);
+      }
+    }
+
+    await Promise.all([
+      ...normalOps.map((fo) => fo.expire()),
+      ...ephemeralOps.map(async (fo) => {
+        await fo.expire();
+        // hard-delete ephemeral rows after expiry without emitting events
+        await FileOperation.destroy({
+          where: { id: fo.id },
+          hooks: false,
+        });
+      }),
+    ]);
+    Logger.info(
+      "task",
+      `Expired ${fileOperations.length} file operations (${ephemeralOps.length} ephemeral hard-deleted)`
     );
-    Logger.info("task", `Expired ${fileOperations.length} file operations`);
   }
 
   public get cron() {

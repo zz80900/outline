@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { CloudIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";

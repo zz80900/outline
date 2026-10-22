@@ -283,31 +283,47 @@ class User extends ParanoidModel<
   }
 
   /**
+   * Whether the user is configured as a server-side super-administrator.
+   */
+  get isSuperAdmin(): boolean {
+    const email = this.email?.trim().toLowerCase();
+
+    return !!email && env.SUPER_ADMIN_EMAILS.includes(email);
+  }
+
+  /**
+   * The role used for server authorization and public presentation.
+   */
+  get effectiveRole(): UserRole {
+    return this.isSuperAdmin ? UserRole.Admin : this.role;
+  }
+
+  /**
    * Whether the user is an admin.
    */
   get isAdmin() {
-    return this.role === UserRole.Admin;
+    return this.effectiveRole === UserRole.Admin;
   }
 
   /**
    * Whether the user is a member (editor).
    */
   get isMember() {
-    return this.role === UserRole.Member;
+    return this.effectiveRole === UserRole.Member;
   }
 
   /**
    * Whether the user is a viewer.
    */
   get isViewer() {
-    return this.role === UserRole.Viewer;
+    return this.effectiveRole === UserRole.Viewer;
   }
 
   /**
    * Whether the user is a guest.
    */
   get isGuest() {
-    return this.role === UserRole.Guest;
+    return this.effectiveRole === UserRole.Guest;
   }
 
   get color() {
@@ -505,7 +521,9 @@ class User extends ParanoidModel<
             [Op.or]: [{ [Op.is]: null }, { [Op.eq]: this.id }],
           },
           [Op.or]: [
-            ...(this.isGuest
+            ...(this.isSuperAdmin
+              ? [{}] // super-admin: match all collections in team
+              : this.isGuest
               ? []
               : [
                   {

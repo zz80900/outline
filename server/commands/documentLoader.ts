@@ -25,9 +25,13 @@ export default async function loadDocument({
   }
 
   if (document.deletedAt) {
-    // don't send data if user cannot restore deleted doc
+    // Super-administrators may read soft-deleted documents without restore permission
     if (user) {
-      authorize(user, "restore", document);
+      if (user.isSuperAdmin) {
+        authorize(user, "read", document);
+      } else {
+        authorize(user, "restore", document);
+      }
     }
   } else {
     if (user) {

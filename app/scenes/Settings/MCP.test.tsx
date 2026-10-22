@@ -1,6 +1,6 @@
 import * as React from "react";
-import ReactDOM from "react-dom";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { ThemeProvider } from "styled-components";
 import copy from "copy-to-clipboard";
 import { light } from "@shared/styles/theme";
@@ -51,25 +51,28 @@ vi.mock("~/components/NudeButton", () => ({
 
 describe("MCP", () => {
   let container: HTMLDivElement;
+  let root: Root;
 
   beforeEach(() => {
     container = document.createElement("div");
     document.body.appendChild(container);
+    root = createRoot(container);
     vi.mocked(copy).mockClear();
   });
 
   afterEach(() => {
-    ReactDOM.unmountComponentAtNode(container);
+    act(() => {
+      root.unmount();
+    });
     container.remove();
   });
 
   it("shows connection information without administration controls", () => {
     act(() => {
-      ReactDOM.render(
+      root.render(
         <ThemeProvider theme={light}>
           <MCP />
-        </ThemeProvider>,
-        container
+        </ThemeProvider>
       );
     });
 
@@ -82,11 +85,10 @@ describe("MCP", () => {
 
   it("copies the MCP endpoint", () => {
     act(() => {
-      ReactDOM.render(
+      root.render(
         <ThemeProvider theme={light}>
           <MCP />
-        </ThemeProvider>,
-        container
+        </ThemeProvider>
       );
     });
 

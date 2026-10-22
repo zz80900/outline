@@ -18,7 +18,8 @@ usage() {
 Usage: deploy/push-harbor.sh [options]
 
 Options:
-  -t, --tag TAG                 Local image tag to push. Defaults to latest.
+  -t, --tag TAG                 Local image tag to push. Defaults to the tag in
+                                .image-version, then latest.
       --registry REGISTRY       Harbor registry. Defaults to mpoc-test-harbor.xgd.com.
       --project PROJECT         Harbor project. Defaults to xjc.
       --image-name NAME         Remote image name. Defaults to outline.
@@ -111,6 +112,14 @@ done
 
 if [ -z "${LOCAL_IMAGE}" ]; then
   LOCAL_IMAGE="${IMAGE_NAME}"
+fi
+
+# Fall back to the tag written by build-image.sh, then to latest.
+VERSION_FILE="${REPO_ROOT}/.image-version"
+
+if [ -z "${IMAGE_TAG}" ] && [ -s "${VERSION_FILE}" ]; then
+  IMAGE_TAG="$(tr -d '[:space:]' < "${VERSION_FILE}")"
+  echo "Using tag ${IMAGE_TAG} from ${VERSION_FILE}"
 fi
 
 if [ -z "${IMAGE_TAG}" ]; then

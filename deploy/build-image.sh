@@ -19,7 +19,8 @@ usage() {
 Usage: deploy/build-image.sh [options]
 
 Options:
-  -t, --tag TAG                 Image tag. Defaults to yyMMddHHmm.
+  -t, --tag TAG                 Image tag. Defaults to yyMMddHHmm. When set,
+                                the image is also tagged with the build time.
       --image-name NAME         Image name. Defaults to outline.
       --local-image IMAGE       Local runtime image. Defaults to image name.
       --local-base-image IMAGE  Local build image. Defaults to <local-image>-base.
@@ -32,6 +33,7 @@ Options:
 
 Environment variables with the same names are still supported.
 CLI options override environment variables.
+The built tag is written to .image-version in the repo root.
 EOF
 }
 
@@ -125,8 +127,14 @@ if [ -z "${LOCAL_BASE_IMAGE}" ]; then
   LOCAL_BASE_IMAGE="${LOCAL_IMAGE}-base"
 fi
 
+# Every build is also tagged with the build time so it can be traced back on
+# the registry later.
+TIMESTAMP_TAG="$(date +%y%m%d%H%M)"
+
 if [ -z "${IMAGE_TAG}" ]; then
-  IMAGE_TAG="$(date +%y%m%d%H%M)"
+  IMAGE_TAG="${TIMESTAMP_TAG}"
+else
+  TAG_TIMESTAMP="true"
 fi
 
 BASE_IMAGE_REF="${LOCAL_BASE_IMAGE}:${IMAGE_TAG}"
@@ -155,6 +163,10 @@ runtime_build_args=(
   "-t" "${RUNTIME_IMAGE_REF}"
 )
 
+if [ "${TAG_TIMESTAMP:-false}" = "true" ]; then
+  runtime_build_args+=("-t" "${LOCAL_IMAGE}:${TIMESTAMP_TAG}")
+fi
+
 if [ "${TAG_LATEST}" = "true" ]; then
   runtime_build_args+=("-t" "${LOCAL_IMAGE}:latest")
 fi
@@ -164,8 +176,20 @@ runtime_build_args+=(".")
 echo "Building runtime image ${RUNTIME_IMAGE_REF}"
 docker "${runtime_build_args[@]}"
 
-if [ "${TAG_LATEST}" = "true" ]; then
-  echo "Built ${RUNTIME_IMAGE_REF} and ${LOCAL_IMAGE}:latest"
-else
-  echo "Built ${RUNTIME_IMAGE_REF}"
+built_tags=("${RUNTIME_IMAGE_REF}")
+
+if [ "${TAG_TIMESTAMP:-false}" = "true" ]; then
+  built_tags+=("${LOCAL_IMAGE}:${TIMESTAMP_TAG}")
 fi
+
+if [ "${TAG_LATEST}" = "true" ]; then
+  built_tags+=("${LOCAL_IMAGE}:latest")
+fi
+
+echo "Built ${built_tags[*]}"
+
+# Persist the built tag so follow-up scripts can pick it up without args.
+VERSION_FILE="${REPO_ROOT}/.image-version"
+printf '%s\n' "${IMAGE_TAG}" > "${VERSION_FILE}"
+
+echo "Wrote ${IMAGE_TAG} to ${VERSION_FILE}"

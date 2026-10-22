@@ -68,6 +68,9 @@ router.post(
             { "options.personalOwnerId": user.id },
           ],
         },
+        FileOperation.sequelize!.literal(
+          `"options"->>'ephemeral' IS DISTINCT FROM 'true'`
+        ),
       ],
     };
     const team = await Team.findByPk(user.teamId);

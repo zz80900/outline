@@ -1,7 +1,8 @@
 import type { DefaultState } from "koa";
 import { errToString } from "@shared/utils/error";
 import { randomString } from "@shared/random";
-import { Scope } from "@shared/types";
+import { Scope, UserRole } from "@shared/types";
+import env from "@server/env";
 import {
   buildUser,
   buildTeam,
@@ -397,6 +398,66 @@ describe("Authentication middleware", () => {
       "Your access has been suspended by a workspace admin"
     );
     expect(error).toHaveProperty("errorData.adminEmail", admin.email);
+  });
+
+  it("should authorize a configured email for administrator routes", async () => {
+    const originalEmails = env.SUPER_ADMIN_EMAILS;
+    const state = {} as DefaultState;
+    const user = await buildUser({
+      email: "admin@example.com",
+      role: UserRole.Guest,
+    });
+    const authMiddleware = auth({ role: UserRole.Admin });
+    env.SUPER_ADMIN_EMAILS = ["admin@example.com"];
+
+    try {
+      await authMiddleware(
+        {
+          // @ts-expect-error mock request
+          request: {
+            get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
+          },
+          state,
+          cache: {},
+        },
+        vi.fn()
+      );
+
+      expect(state.auth.user.id).toEqual(user.id);
+      expect(state.auth.user.effectiveRole).toEqual(UserRole.Admin);
+    } finally {
+      env.SUPER_ADMIN_EMAILS = originalEmails;
+    }
+  });
+
+  it("should reject a suspended configured email before role authorization", async () => {
+    const originalEmails = env.SUPER_ADMIN_EMAILS;
+    const state = {} as DefaultState;
+    const user = await buildUser({
+      email: "admin@example.com",
+      role: UserRole.Guest,
+      suspendedAt: new Date(),
+    });
+    const authMiddleware = auth({ role: UserRole.Admin });
+    env.SUPER_ADMIN_EMAILS = ["admin@example.com"];
+
+    try {
+      await expect(
+        authMiddleware(
+          {
+            // @ts-expect-error mock request
+            request: {
+              get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
+            },
+            state,
+            cache: {},
+          },
+          vi.fn()
+        )
+      ).rejects.toHaveProperty("id", "user_suspended");
+    } finally {
+      env.SUPER_ADMIN_EMAILS = originalEmails;
+    }
   });
 
   it("should return an error for deleted team", async () => {

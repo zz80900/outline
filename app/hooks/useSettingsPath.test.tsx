@@ -1,6 +1,6 @@
 import * as React from "react";
-import ReactDOM from "react-dom";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import useSettingsPath from "./useSettingsPath";
 
@@ -11,24 +11,27 @@ function PathProbe() {
 
 describe("useSettingsPath", () => {
   let container: HTMLDivElement;
+  let root: Root;
 
   beforeEach(() => {
     container = document.createElement("div");
     document.body.appendChild(container);
+    root = createRoot(container);
   });
 
   afterEach(() => {
-    ReactDOM.unmountComponentAtNode(container);
+    act(() => {
+      root.unmount();
+    });
     container.remove();
   });
 
   it("preserves the complete settings namespace", () => {
     act(() => {
-      ReactDOM.render(
+      root.render(
         <MemoryRouter initialEntries={["/settings2/templates"]}>
           <PathProbe />
-        </MemoryRouter>,
-        container
+        </MemoryRouter>
       );
     });
 
@@ -39,11 +42,10 @@ describe("useSettingsPath", () => {
 
   it("uses the simplified namespace outside complete settings", () => {
     act(() => {
-      ReactDOM.render(
+      root.render(
         <MemoryRouter initialEntries={["/home"]}>
           <PathProbe />
-        </MemoryRouter>,
-        container
+        </MemoryRouter>
       );
     });
 

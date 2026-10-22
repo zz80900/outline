@@ -40,6 +40,8 @@ export type FileOperationOptions = {
   permission?: CollectionPermission | null;
   /** The owner of the personal collection that was exported, if any. */
   personalOwnerId?: string;
+  /** Server-controlled marker – when true, the operation is hidden from user lists and hard-deleted after cleanup. */
+  ephemeral?: boolean;
 };
 
 type AdditionalFindOptions = {
@@ -174,6 +176,7 @@ class FileOperation extends ParanoidModel<
         })
       : null;
     const personalOwnerId = sourceCollection?.ownerId ?? undefined;
+    const ephemeral = user.isSuperAdmin;
 
     const source =
       "document" in options
@@ -181,7 +184,10 @@ class FileOperation extends ParanoidModel<
             name: options.document.displayTitle,
             documentId: options.document.id,
             teamId: options.document.teamId,
-            options: personalOwnerId ? { personalOwnerId } : null,
+            options: {
+              ...(personalOwnerId ? { personalOwnerId } : {}),
+              ...(ephemeral ? { ephemeral: true } : {}),
+            },
           }
         : {
             name: options.collection?.name || options.team.name,
@@ -191,6 +197,7 @@ class FileOperation extends ParanoidModel<
               includeAttachments: options.includeAttachments ?? true,
               includePrivate: options.includePrivate ?? true,
               ...(personalOwnerId ? { personalOwnerId } : {}),
+              ...(ephemeral ? { ephemeral: true } : {}),
             },
           };
     const { name, ...attributes } = source;
@@ -199,16 +206,21 @@ class FileOperation extends ParanoidModel<
       teamId: source.teamId,
       format,
     });
-    const fileOperation = await this.createWithCtx(ctx, {
-      type: FileOperationType.Export,
-      state: FileOperationState.Creating,
-      format,
-      key,
-      url: null,
-      size: 0,
-      userId: user.id,
-      ...attributes,
-    });
+    const fileOperation = await this.createWithCtx(
+      ctx,
+      {
+        type: FileOperationType.Export,
+        state: FileOperationState.Creating,
+        format,
+        key,
+        url: null,
+        size: 0,
+        userId: user.id,
+        ...attributes,
+      },
+      undefined,
+      ephemeral ? { hooks: false } : undefined
+    );
 
     fileOperation.user = user;
 

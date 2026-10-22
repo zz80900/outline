@@ -1,3 +1,4 @@
+import env from "@server/env";
 import {
   CollectionPermission,
   CommentingAccess,
@@ -893,5 +894,112 @@ describe("personal collection", () => {
     expect(collaboratorAbilities.read).toBeTruthy();
     expect(collaboratorAbilities.update).toEqual(false);
     expect(collaboratorAbilities.move).toEqual(false);
+  });
+});
+
+describe("super administrator", () => {
+  it("should allow read and download on a private document without membership", async () => {
+    const team = await buildTeam();
+    const superAdmin = await buildUser({
+      teamId: team.id,
+      role: UserRole.Member,
+      email: "super@example.com",
+    });
+    env.SUPER_ADMIN_EMAILS = ["super@example.com"];
+    try {
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: null,
+      });
+      const doc = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+      });
+      const document = await Document.findByPk(doc.id, { userId: superAdmin.id });
+      const abilities = serialize(superAdmin, document);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.download).toBeTruthy();
+      expect(abilities.update).toEqual(false);
+    } finally {
+      env.SUPER_ADMIN_EMAILS = [];
+    }
+  });
+
+  it("should allow read of a draft document without membership", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const superAdmin = await buildUser({
+      teamId: team.id,
+      role: UserRole.Member,
+      email: "super@example.com",
+    });
+    env.SUPER_ADMIN_EMAILS = ["super@example.com"];
+    try {
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: null,
+      });
+      const doc = await buildDraftDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        createdById: admin.id,
+      });
+      const document = await Document.findByPk(doc.id, { userId: superAdmin.id });
+      const abilities = serialize(superAdmin, document);
+      expect(abilities.read).toBeTruthy();
+    } finally {
+      env.SUPER_ADMIN_EMAILS = [];
+    }
+  });
+
+  it("should not grant read across workspaces", async () => {
+    const team1 = await buildTeam();
+    const team2 = await buildTeam();
+    const superAdmin = await buildUser({
+      teamId: team1.id,
+      role: UserRole.Member,
+      email: "super@example.com",
+    });
+    env.SUPER_ADMIN_EMAILS = ["super@example.com"];
+    try {
+      const collection = await buildCollection({
+        teamId: team2.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+      const doc = await buildDocument({
+        teamId: team2.id,
+        collectionId: collection.id,
+      });
+      const document = await Document.findByPk(doc.id, { userId: superAdmin.id });
+      const abilities = serialize(superAdmin, document);
+      expect(abilities.read).toEqual(false);
+      expect(abilities.download).toEqual(false);
+    } finally {
+      env.SUPER_ADMIN_EMAILS = [];
+    }
+  });
+
+  it("should not grant read to non-matching user", async () => {
+    const team = await buildTeam();
+    const regularUser = await buildUser({
+      teamId: team.id,
+      role: UserRole.Member,
+    });
+    env.SUPER_ADMIN_EMAILS = ["super@example.com"];
+    try {
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: null,
+      });
+      const doc = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+      });
+      const document = await Document.findByPk(doc.id, { userId: regularUser.id });
+      const abilities = serialize(regularUser, document);
+      expect(abilities.read).toEqual(false);
+    } finally {
+      env.SUPER_ADMIN_EMAILS = [];
+    }
   });
 });

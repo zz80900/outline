@@ -56,6 +56,22 @@ router.post(
     });
     authorize(user, "read", document);
 
+    if (user.isSuperAdmin) {
+      // Super-administrators get a transient view response without persisting
+      ctx.body = {
+        data: {
+          id: documentId,
+          documentId,
+          count: 1,
+          firstViewedAt: new Date(),
+          lastViewedAt: new Date(),
+          userId: user.id,
+          user,
+        },
+      };
+      return;
+    }
+
     const view = await View.incrementOrCreate(ctx, {
       documentId,
       userId: user.id,
