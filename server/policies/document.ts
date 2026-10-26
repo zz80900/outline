@@ -10,6 +10,7 @@ import {
   and,
   isCollectionOwner,
   isCollectionWritable,
+  isCommentingEnabled,
   isTeamAdmin,
   isTeamModel,
   isTeamMutable,
@@ -76,8 +77,7 @@ allow(User, "comment", Document, (actor, document) => {
     !!document?.isActive,
     isTeamMutable(actor),
     can(actor, "read", document),
-    // A legacy boolean `false` (team not yet migrated) means disabled.
-    commenting !== CommentingAccess.None && commenting !== false,
+    isCommentingEnabled(actor),
     or(!actor.isGuest, commenting === CommentingAccess.Everyone),
     or(!document?.collection, document?.collection?.commenting !== false)
   );
@@ -224,6 +224,7 @@ allow(User, "delete", Document, (actor, document) =>
 allow(User, "restore", Document, (actor, document) =>
   and(
     !actor.isGuest,
+    !actor.isViewer,
     !!document?.isDeleted,
     isTeamModel(actor, document),
     or(
@@ -270,6 +271,8 @@ allow(User, "archive", Document, (actor, document) =>
 
 allow(User, "unarchive", Document, (actor, document) =>
   and(
+    !actor.isGuest,
+    !actor.isViewer,
     !document?.isDraft,
     !document?.isDeleted,
     !!document?.archivedAt,

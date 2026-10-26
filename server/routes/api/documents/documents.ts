@@ -1184,9 +1184,9 @@ router.post(
     const document = await Document.findByPk(id, {
       userId: user.id,
       paranoid: false,
-      rejectOnEmpty: true,
       transaction,
     });
+    authorize(user, "read", document);
 
     await documentRestorer(ctx, { document, collectionId, revisionId });
 
@@ -1510,6 +1510,14 @@ router.post(
 
     if (publish) {
       await authorizeDocumentPublish(ctx, document, collectionId);
+    }
+
+    if (input.templateId && input.templateId !== document.templateId) {
+      const template = await Template.findByPk(input.templateId, {
+        userId: user.id,
+        transaction,
+      });
+      authorize(user, "read", template);
     }
 
     document = await documentUpdater(ctx, {
@@ -1985,14 +1993,10 @@ router.post(
       UserMemberships.length ? UserMemberships[0].index : null
     );
 
-    let membership = await UserMembership.findOne({
-      where: {
-        documentId: id,
-        userId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
-    });
+    let membership = await UserMembership.findOneForUpdate(
+      { documentId: id, userId },
+      { transaction }
+    );
 
     if (membership) {
       if (permission) {
@@ -2100,14 +2104,10 @@ router.post(
     authorize(user, "manageUsers", document);
     authorize(user, "read", group);
 
-    let membership = await GroupMembership.findOne({
-      where: {
-        documentId: id,
-        groupId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
-    });
+    let membership = await GroupMembership.findOneForUpdate(
+      { documentId: id, groupId },
+      { transaction }
+    );
 
     if (membership) {
       if (permission) {
